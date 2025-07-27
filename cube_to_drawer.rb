@@ -20,7 +20,7 @@ module AdamExtensions
             file_loaded(__FILE__)
         end
 
-    end # module HelloCube
-end # module AdamExtentions
+    end # module CubeToDrawer
+end # module AdamExtensions
 
 
