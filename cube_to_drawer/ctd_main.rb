@@ -167,8 +167,13 @@ module AdamExtensions
         end
 
         #-------------------------------------------------------------------------------
-        #  main.....
+        #  main Module code....
         #-------------------------------------------------------------------------------
+
+        unless file_loaded(__FILE__)
+            menu = UI.menu("Extensions").add_sub_menu("Cube to Drawer")
+            file_loaded(__FILE__)
+        end
 
         model = Sketchup.active_model
         sel = model.selection

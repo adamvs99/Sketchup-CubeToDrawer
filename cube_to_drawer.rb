@@ -8,7 +8,7 @@ require 'sketchup.rb'
 require 'extensions.rb'
 
 module AdamExtensions
-    module HelloCube
+    module CubeToDrawer
 
         unless file_loaded?(__FILE__)
             ex = SketchupExtension.new('Cube To Drawer', 'cube_to_drawer/ctd_main')
