@@ -1,5 +1,5 @@
 #
-#  cube_toDrawer.rb
+#  cube_to_drawer.rb
 #
 #
 #  Created by Adam Silver on 7/16/25.
@@ -11,7 +11,7 @@ module AdamExtensions
     module CubeToDrawer
 
         unless file_loaded?(__FILE__)
-            ex = SketchupExtension.new('Cube To Drawer', 'cube_to_drawer/ctd_main')
+            ex = SketchupExtension.new('Cube To Drawer.1', 'cube_to_drawer/ctd_main')
             ex.description = 'SketchUp create drawer pieces from a selected cube.'
             ex.version = '1.0.0'
             ex.copyright = 'Adam Silver © 2025'

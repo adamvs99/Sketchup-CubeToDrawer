@@ -20,6 +20,7 @@ module AdamExtensions
         end
 
         def expand_rect(rect, x, y, z, context="metric")
+            # TODO: maxx = rect.max {|a,b| a.x<=>b.x}.x if x!=0
             maxx = x==0 ? 0 : rect.max {|a,b| a.x<=>b.x}.x
             minx = x==0 ? 0 : rect.min {|a,b| a.x<=>b.x}.x
             maxy = y==0 ? 0 : rect.max {|a,b| a.y<=>b.y}.y
@@ -49,6 +50,7 @@ module AdamExtensions
         end
 
         def move_rect(rect, x, y, z, context="metric")
+            # TODO: x = conv(x) context=="metric" && if x!=0
             x = context == "metric" ? x==0 ? 0 : conv(x) : x
             y = context == "metric" ? y==0 ? 0 : conv(y) : y
             z = context == "metric" ? z==0 ? 0 : conv(z) : z
