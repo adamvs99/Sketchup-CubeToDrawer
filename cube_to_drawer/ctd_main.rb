@@ -171,29 +171,31 @@ module AdamExtensions
         #-------------------------------------------------------------------------------
         #  main Module code....
         #-------------------------------------------------------------------------------
-
-#       unless file_loaded(__FILE__)
-#           menu = UI.menu("Extensions").add_sub_menu("Cube to Drawer")
-#           file_loaded(__FILE__)
-#       end
-
-        model = Sketchup.active_model
-        sel = model.selection
-        face_map = {}
-        sel.each do |e|
-            if e.is_a? Sketchup::Group
-                group_entities = e.entities
-                group_entities.each do |ge|
-                    load_face_map(ge, face_map) if ge.is_a? Sketchup::Face
+        def ctd_main
+            model = Sketchup.active_model
+            sel = model.selection
+            face_map = {}
+            sel.each do |e|
+                if e.is_a? Sketchup::Group
+                    group_entities = e.entities
+                    group_entities.each do |ge|
+                        load_face_map(ge, face_map) if ge.is_a? Sketchup::Face
+                    end
+                    e.erase!
+                    break
                 end
-                e.erase!
-                break
             end
+            create_bottom_panel(face_map, 12)
+            create_side_panel_right(face_map, 12)
+            create_side_panel_left(face_map, 12)
+            #face_map.each_pair{|p| puts p}
+        end # def ctd_main
+
+        unless file_loaded(__FILE__)
+            menu = UI.menu("Extensions").add_sub_menu("Cube to Drawer")
+            ctd_main
+            file_loaded(__FILE__)
         end
-        create_bottom_panel(face_map, 12)
-        create_side_panel_right(face_map, 12)
-        create_side_panel_left(face_map, 12)
-        #face_map.each_pair{|p| puts p}
 
     end # module CubeToDrawer
 end # module AdamExtensions
