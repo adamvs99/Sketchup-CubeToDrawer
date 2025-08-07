@@ -11,7 +11,7 @@ module AdamExtensions
     module CubeToDrawer
 
         unless file_loaded?(__FILE__)
-            ex = SketchupExtension.new('Cube To Drawer.4', 'cube_to_drawer/main')
+            ex = SketchupExtension.new('Cube To Drawer', 'cube_to_drawer/main')
             ex.description = 'SketchUp create drawer pieces from a selected cube.'
             ex.version = '1.0.0'
             ex.copyright = 'Adam Silver © 2025'
