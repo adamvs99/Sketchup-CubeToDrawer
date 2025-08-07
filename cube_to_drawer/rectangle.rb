@@ -38,6 +38,13 @@ module AdamExtensions
                 end
             end
 
+            def _prnt(title)
+                @points.each_with_index do |pt, index|
+                    title="" if index > 0
+                    puts title.ljust(10) + "[x: #{pt.x}, y: #{pt.y}, z: #{pt.z}]".ljust(40)
+                end
+            end
+
             def points
                 @points
             end
