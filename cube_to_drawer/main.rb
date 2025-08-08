@@ -18,36 +18,36 @@ module AdamExtensions
         # @param [CubeMap] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
         # @param [String] context to convert thickness numeric
-        def self.create_bottom_panel(face_map, thickness, context="metric")
+        def self.create_bottom_panel(face_map, thickness, units_type="metric")
             # gate this function in case face_map is empty
             return unless face_map.key?("bottom")
             half_thickness = thickness/2
             top_rect = face_map.to_rect_copy("bottom", 0, 0, thickness)
-            top_rect.expand(-half_thickness, -half_thickness)
+            top_rect.expand(-half_thickness, -half_thickness, 0, units_type)
             # top_rect._prnt("top_rect")
             mid_rect = face_map.to_rect_copy("bottom", 0, 0, half_thickness)
-            mid_rect.expand(-thickness, -thickness, 0)
+            mid_rect.expand(-thickness, -thickness, 0, units_type)
             # create the group...
             model = Sketchup.active_model
             model.start_operation("Create Drawer Bottom Group", true)
+            in_half_thickness = Utils::in_unit(half_thickness, units_type)
             group = model.entities.add_group
             upper_face = group.entities.add_face(top_rect.points)
             upper_face.reverse! if upper_face.normal.z > 0
-            upper_face.pushpull(Utils::in_unit(half_thickness))
+            upper_face.pushpull(in_half_thickness)
             mid_face = group.entities.add_face(mid_rect.points)
             mid_face.reverse! if mid_face.normal.z > 0
-            mid_face.pushpull(Utils::in_unit(half_thickness))
+            mid_face.pushpull(in_half_thickness)
             model.commit_operation
         end
 
         # @param [Hash] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
         # @param [String] context to convert thickness numeric
-        def self.create_side_panel_right(face_map, thickness, context="metric")
+        def self.create_side_panel_right(face_map, thickness, units_type="metric")
             return unless face_map.key?("right")
 
             half_thickness = thickness/2
-
             side_rect = face_map.to_rect_copy("right")
             # create a face of the cut elongated cube item juts back of the 'front' of the initial cube
             start_y = side_rect.min_y - half_thickness
