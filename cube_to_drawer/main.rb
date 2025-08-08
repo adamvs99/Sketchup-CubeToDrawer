@@ -61,8 +61,9 @@ module AdamExtensions
             side_face.reverse! if side_face.normal.x > 0
             side_face.pushpull(in_thickness)
             model.commit_operation
+
             # cut the bottom dado
-            model.start_operation("Side Right Bottom dado", true)
+            model.start_operation("Side Right Bottom Dado", true)
             min_x = side_rect.min_x - in_thickness - in_half_thickness
             max_x = side_rect.min_x - in_half_thickness
             min_z = side_rect.min_z + in_half_thickness
@@ -79,7 +80,28 @@ module AdamExtensions
             cut_face.pushpull(side_rect.depth+in_thickness)
             cut_group.subtract(side_group)
             model.commit_operation
-        end
+
+            # cut the dado for the back piece
+            model.start_operation("Side Right Rear Dado", true)
+            cut_rect.move(0, in_half_thickness, side_rect.height, units_type)
+            cut_rect.flip("xy")
+            cut_group = model.entities.add_group
+            cut_face = cut_group.entities.add_face(cut_rect.points)
+            cut_face.reverse! if cut_face.normal.z < 0
+            cut_face.pushpull(side_rect.height+in_thickness)
+            cut_group.subtract(side_group)
+            model.commit_operation
+
+            # cut the dado for the front piece
+            model.start_operation("Side Right Front Dado", true)
+            cut_rect.move(0, side_rect.depth - in_thickness - in_half_thickness, 0, units_type)
+            cut_group = model.entities.add_group
+            cut_face = cut_group.entities.add_face(cut_rect.points)
+            cut_face.reverse! if cut_face.normal.z < 0
+            cut_face.pushpull(side_rect.height+in_thickness)
+            #cut_group.subtract(side_group)
+            model.commit_operation
+         end
         # @param [Hash] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
         # @param [String] context to convert thickness numeric
