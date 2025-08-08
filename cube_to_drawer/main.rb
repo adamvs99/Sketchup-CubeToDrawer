@@ -8,6 +8,7 @@
 require 'sketchup.rb'
 require 'extensions.rb'
 require_relative 'cubic_shape'
+require_relative 'rectangle'
 require_relative 'utils'
 
 module AdamExtensions
@@ -48,30 +49,36 @@ module AdamExtensions
             return unless face_map.key?("right")
 
             half_thickness = thickness/2
+            in_thickness = Utils::in_unit(thickness, units_type)
+            in_half_thickness = Utils::in_unit(half_thickness, units_type)
             side_rect = face_map.to_rect_copy("right")
             # create a face of the cut elongated cube item juts back of the 'front' of the initial cube
-            start_y = side_rect.min_y - half_thickness
-            cut_rect = Rect.new([Geom::Point3d.new(min_x-Utils::in_unit(half_thickness), start_y, min_z+Utils::in_unit(half_thickness)),
-                                        Geom::Point3d.new(min_x-Utils::in_unit(half_thickness), start_y, min_z+Utils::in_unit(thickness)),
-                                        Geom::Point3d.new(min_x-Utils::in_unit(thickness), start_y, min_z+Utils::in_unit(thickness)),
-                                        Geom::Point3d.new(min_x-Utils::in_unit(thickness), start_y, min_z+Utils::in_unit(half_thickness))])
             model = Sketchup.active_model
             # create the 'side' piece
             model.start_operation("Create Side Right Group", true)
             side_group = model.entities.add_group
-            side_face = group.entities.add_face(side_rect.points)
-            side_face.pushpull(Utils::in_unit(-thickness))
+            side_face = side_group.entities.add_face(side_rect.points)
+            side_face.reverse! if side_face.normal.x > 0
+            side_face.pushpull(in_thickness)
             model.commit_operation
             # cut the bottom dado
             model.start_operation("Side Right Bottom dado", true)
+            min_x = side_rect.min_x - in_thickness - in_half_thickness
+            max_x = side_rect.min_x - in_half_thickness
+            min_z = side_rect.min_z + in_half_thickness
+            max_z = side_rect.min_z + in_thickness
+            start_y = side_rect.min_y - in_half_thickness
+            # points going clockwise on the X, Z plane...
+            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, start_y, min_z),
+                                          Geom::Point3d.new(min_x, start_y, min_z),
+                                          Geom::Point3d.new(max_x, start_y, max_z),
+                                          Geom::Point3d.new(min_x, start_y, max_z)])
             cut_group = model.entities.add_group
-            cut_face = group.entities.add_face(cut_rect.points)
-            cut_face.pushpull(-side_rect.depth-thickness)
+            cut_face = cut_group.entities.add_face(cut_rect.points)
+            cut_face.reverse! if cut_face.normal.y < 0
+            cut_face.pushpull(side_rect.depth+in_thickness)
             cut_group.subtract(side_group)
             model.commit_operation
-            group_map = CubeMap.new(side_group)
-            # cut the back dado
-            top_rect = group_map.to_rect_copy("top")
         end
         # @param [Hash] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
@@ -87,10 +94,10 @@ module AdamExtensions
             max_y = base_rect.map {|pt| pt.y}.max
             min_z = base_rect.map {|pt| pt.z}.min
             length = (max_y - min_y).abs
-            cut_rect = [Geom::Point3d.new(min_x+Utils::in_unit(half_thickness), min_y, min_z+Utils::in_unit(half_thickness)),
+            cut_rect = GeoUtil::Rect([Geom::Point3d.new(min_x+Utils::in_unit(half_thickness), min_y, min_z+Utils::in_unit(half_thickness)),
                         Geom::Point3d.new(min_x+Utils::in_unit(half_thickness), min_y, min_z+Utils::in_unit(thickness)),
                         Geom::Point3d.new(min_x+Utils::in_unit(thickness), min_y, min_z+Utils::in_unit(thickness)),
-                        Geom::Point3d.new(min_x+Utils::in_unit(thickness), min_y, min_z+Utils::in_unit(half_thickness))]
+                        Geom::Point3d.new(min_x+Utils::in_unit(thickness), min_y, min_z+Utils::in_unit(half_thickness))])
             model = Sketchup.active_model
             model.start_operation("Create Side Left Group", true)
             group = model.entities.add_group
@@ -112,7 +119,7 @@ module AdamExtensions
                 sel.clear
             end
             self.create_bottom_panel(cube_map, 12)
-            #create_side_panel_right(cube_map, 12)
+            self.create_side_panel_right(cube_map, 12)
             #create_side_panel_left(cube_map, 12)
         end # def ctd_main
 

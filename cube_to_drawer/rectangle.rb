@@ -53,6 +53,10 @@ module AdamExtensions
                 @points << pt
             end
 
+            def min_x
+                @points.map {|pt| pt.x}.min
+            end
+
             def max_x
                 @points.map {|pt| pt.x}.max
             end
@@ -143,10 +147,6 @@ module AdamExtensions
                 @points.each {|pt| new_rect << Geom::Point3d.new([pt.x, pt.y, pt.z])}
                 new_rect.move(x, y, z, units_type)
                 new_rect
-            end
-
-            def min_x
-                @points.map {|pt| pt.x}.min
             end
 
             def expand(x=0, y=0, z=0, units_type="metric")
