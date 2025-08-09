@@ -107,28 +107,37 @@ module AdamExtensions
                 height==0 ? "xy" : width==0 ? :"yz" : "xz"
             end
 
+            def _xz_to_xy
+                new_z = min_z
+                z_max = max_z
+                h = height
+                y_max = max_y
+                @points.each do |pt|
+                    pt.y += h if pt.z == z_max
+                    pt.z = new_z
+                end
+            end
+
             def flip(new_orientation)
                 return self if new_orientation==orientation
                 orig_orientation = orientation
-                @points.each do |pt|
-                    if orig_orientation=="xy"
-                        if new_orientation=="xz"
-                            pt.y,pt.z = pt.z,pt.y
-                        elsif new_orientation=="yz"
-                            pt.x,pt.z = pt.z,pt.x
-                        end
-                    elsif orig_orientation=="xz"
-                        if new_orientation=="xy"
-                            pt.y,pt.z = pt.z,pt.y
-                        elsif new_orientation=="yz"
-                            pt.x,pt.y = pt.y,pt.x
-                        end
-                    else # orig_orientation=="yz"
-                        if new_orientation=="xy"
-                            pt.x,pt.z = pt.z,pt.x
-                        elsif new_orientation=="xz"
-                            pt.x,pt.y = pt.y,pt.x
-                        end
+                if orig_orientation=="xy"
+                    if new_orientation=="xz"
+                        #TODO
+                    elsif new_orientation=="yz"
+                        #TODO
+                    end
+                elsif orig_orientation=="xz"
+                    if new_orientation=="xy"
+                        _xz_to_xy
+                    elsif new_orientation=="yz"
+                        #TODO
+                    end
+                else # orig_orientation=="yz"
+                    if new_orientation=="xy"
+                        #TODO
+                    elsif new_orientation=="xz"
+                        #TODO
                     end
                 end
                 self
