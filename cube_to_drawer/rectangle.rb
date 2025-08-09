@@ -39,9 +39,10 @@ module AdamExtensions
             end
 
             def _prnt(title)
+                title += " " + orientation
                 @points.each_with_index do |pt, index|
                     title="" if index > 0
-                    puts title.ljust(10) + "[x: #{pt.x}, y: #{pt.y}, z: #{pt.z}]".ljust(40)
+                    puts title.ljust(20) + "[x: #{pt.x}, y: #{pt.y}, z: #{pt.z}]".ljust(40)
                 end
             end
 
@@ -138,7 +139,7 @@ module AdamExtensions
                 x = Utils::in_unit(x, units_type)
                 y = Utils::in_unit(y, units_type)
                 z = Utils::in_unit(z, units_type)
-                @points.each {|p| p.x += x; p.y += y; p.z += z}
+                @points.each {|pt| pt.x += x; pt.y += y; pt.z += z}
                 self
             end
 
