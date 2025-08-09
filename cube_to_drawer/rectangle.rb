@@ -187,6 +187,36 @@ module AdamExtensions
                 end
                 self
             end # def expand
+
+            def change_edge(edge, amount, units_type="metric")
+                return unless amount!=0
+                amount = Utils::in_unit(amount, units_type)
+                if edge == "bottom"
+                    return unless ["xz", "yz"].include? orientation
+                    mz = min_z
+                    @points.each {|pt| pt.z += amount if pt.z==mz}
+                elsif edge == "top"
+                    return unless ["xz", "yz"].include? orientation
+                    mz = max_z
+                    @points.each {|pt| pt.z += amount if pt.z==mz}
+                elsif edge == "front"
+                    return unless ["xy", "yz"].include? orientation
+                    my = min_y
+                    @points.each {|pt| pt.y += amount if pt.y==my}
+                elsif edge == "back"
+                    return unless ["xy", "yz"].include? orientation
+                    my = max_y
+                    @points.each {|pt| pt.y += amount if pt.y==my}
+                elsif edge == "left"
+                    return unless ["xy", "xz"].include? orientation
+                    mx = min_x
+                    @points.each {|pt| pt.x += amount if pt.x==mx}
+                elsif edge == "right"
+                    return unless ["xy", "xz"].include? orientation
+                    mx = max_x
+                    @points.each {|pt| pt.x += amount if pt.x==mx}
+                end
+            end
         end # class Rect
 
     end # module GeoUtil

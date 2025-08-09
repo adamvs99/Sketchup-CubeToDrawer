@@ -46,7 +46,7 @@ module AdamExtensions
         # @param [Hash] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
         # @param [String] context to convert thickness numeric
-        def self.create_side_panel_right(face_map, thickness, units_type="metric")
+        def self.create_side_panels(face_map, thickness, units_type="metric")
             return unless face_map.key?("right")
 
             half_thickness = thickness/2
@@ -119,28 +119,24 @@ module AdamExtensions
         # @param [Hash] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
         # @param [String] context to convert thickness numeric
-        def self.create_side_panel_left(face_map, thickness, context="metric")
-            return unless face_map.key?("left")
-
-            half_thickness = thickness/2
-            base_rect = face_map["left"][:face_points]
-            side_rect = face_map.(base_rect)
-            min_x = base_rect.map {|pt| pt.x}.min
-            min_y = base_rect.map {|pt| pt.y}.min
-            max_y = base_rect.map {|pt| pt.y}.max
-            min_z = base_rect.map {|pt| pt.z}.min
-            length = (max_y - min_y).abs
-            cut_rect = GeoUtil::Rect([Geom::Point3d.new(min_x+Utils::in_unit(half_thickness), min_y, min_z+Utils::in_unit(half_thickness)),
-                        Geom::Point3d.new(min_x+Utils::in_unit(half_thickness), min_y, min_z+Utils::in_unit(thickness)),
-                        Geom::Point3d.new(min_x+Utils::in_unit(thickness), min_y, min_z+Utils::in_unit(thickness)),
-                        Geom::Point3d.new(min_x+Utils::in_unit(thickness), min_y, min_z+Utils::in_unit(half_thickness))])
+        def self.create_side_front_back_panels(face_map, thickness, units_type="metric")
+            return unless face_map.key?("front")
             model = Sketchup.active_model
-            model.start_operation("Create Side Left Group", true)
+            half_thickness = thickness/2
+            in_half_thickness = Utils::in_unit(half_thickness, units_type)
+            front_rect = face_map.to_rect_copy("front")
+            model.start_operation("Create Front Panel", true)
+            front_rect.move(0, thickness, 0, units_type)
+            front_rect.expand(-half_thickness, 0, 0, units_type)
             group = model.entities.add_group
-            side_face = group.entities.add_face(side_rect.points)
-            side_face.pushpull(Utils::in_unit(-thickness))
-            cut_face = group.entities.add_face(cut_rect.points)
-            cut_face.pushpull(-length)
+            front_face = group.entities.add_face(front_rect.points)
+            front_face.reverse! if front_face.normal.z < 0
+            front_face.pushpull(in_half_thickness)
+            front_rect.move(0, -half_thickness, 0, units_type)
+            front_rect.expand(-half_thickness, 0, 0, units_type)
+            front_face = group.entities.add_face(front_rect.points)
+            front_face.reverse! if front_face.normal.z < 0
+            front_face.pushpull(in_half_thickness)
             model.commit_operation
         end
 
@@ -155,8 +151,8 @@ module AdamExtensions
                 sel.clear
             end
             self.create_bottom_panel(cube_map, 12)
-            self.create_side_panel_right(cube_map, 12)
-            #create_side_panel_left(cube_map, 12)
+            self.create_side_panels(cube_map, 12)
+            self.create_side_front_back_panels(cube_map, 12)
         end # def ctd_main
 
         unless file_loaded(__FILE__)
