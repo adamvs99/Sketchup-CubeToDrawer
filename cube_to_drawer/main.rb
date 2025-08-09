@@ -10,6 +10,7 @@ require 'extensions.rb'
 require_relative 'cubic_shape'
 require_relative 'rectangle'
 require_relative 'utils'
+require 'pp'
 
 module AdamExtensions
 
@@ -83,32 +84,56 @@ module AdamExtensions
             model.commit_operation
 
             # cut the dado for the back piece
-            min_y = side_rect.min_y + in_half_thickness
-            max_y = side_rect.min_y + in_thickness
-            start_z = side_rect.min_z + side_rect.height + in_half_thickness
-            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, min_y, start_z),
-                                          Geom::Point3d.new(min_x, min_y, start_z),
-                                          Geom::Point3d.new(min_x, max_y, start_z),
-                                          Geom::Point3d.new(max_x, max_y, start_z)])
             model.start_operation("Side Right Rear Dado", true)
-            cut_rect._prnt("orig cut_rect")
+            cut_rect.move(0, thickness, Utils::mm_unit(side_rect.height), units_type)
+            cut_rect.flip("xy")
             cut_group = model.entities.add_group
             cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.z < 0
+            cut_face.reverse! if cut_face.normal.z > 0
             cut_face.pushpull(side_rect.height+in_thickness)
             side_group = cut_group.subtract(side_group)
             model.commit_operation
 
             # cut the dado for the front piece
             model.start_operation("Side Right Front Dado", true)
+            cut_rect.move(0, Utils::mm_unit(side_rect.depth) - thickness - half_thickness, 0, units_type)
+            cut_group = model.entities.add_group
+            cut_face = cut_group.entities.add_face(cut_rect.points)
+            cut_face.reverse! if cut_face.normal.z > 0
+            cut_face.pushpull(side_rect.height+in_thickness)
+            cut_group.subtract(side_group)
+            model.commit_operation
+
+=begin
+            # cut the dado for the back piece
+            min_y = side_rect.min_y + in_half_thickness
+            max_y = side_rect.min_y + in_thickness
+            start_z = side_rect.min_z + side_rect.height + in_half_thickness
+            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, min_y, start_z),
+                                          Geom::Point3d.new(max_x, max_y, start_z),
+                                          Geom::Point3d.new(min_x, max_y, start_z),
+                                          Geom::Point3d.new(min_x, min_y, start_z)])
+            model.start_operation("Side Right Rear Dado", true)
+            cut_rect._prnt("orig cut_rect")
+            cut_group = model.entities.add_group
+            cut_face = cut_group.entities.add_face(cut_rect.points)
+            cut_face.vertices.each {|vertex| pp vertex.position}
+            cut_face.reverse! if cut_face.normal.z > 0
+            cut_face.pushpull(side_rect.height+in_thickness)
+            side_group = cut_group.subtract(side_group)
+            model.commit_operation
+
+             cut the dado for the front piece
+            model.start_operation("Side Right Front Dado", true)
             cut_rect.move(0, Utils::mm_unit(side_rect.depth - in_thickness - cut_rect.depth), 0, units_type)
             cut_rect._prnt("mv cut_rect")
             cut_group = model.entities.add_group
             cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.z < 0
+            cut_face.reverse! if cut_face.normal.z > 0
             cut_face.pushpull(side_rect.height+in_thickness)
-            cut_group.subtract(side_group)
+            #cut_group.subtract(side_group)
             model.commit_operation
+=end
          end
         # @param [Hash] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
