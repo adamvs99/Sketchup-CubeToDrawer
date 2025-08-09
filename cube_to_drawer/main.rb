@@ -57,8 +57,8 @@ module AdamExtensions
             model = Sketchup.active_model
             # create the 'side' piece
             model.start_operation("Create Side Right Group", true)
-            side_group = model.entities.add_group
-            side_face = side_group.entities.add_face(side_rect.points)
+            right_side_group = model.entities.add_group
+            side_face = right_side_group.entities.add_face(side_rect.points)
             side_face.reverse! if side_face.normal.x > 0
             side_face.pushpull(in_thickness)
             model.commit_operation
@@ -80,7 +80,7 @@ module AdamExtensions
             cut_face = cut_group.entities.add_face(cut_rect.points)
             cut_face.reverse! if cut_face.normal.y < 0
             cut_face.pushpull(side_rect.depth+in_thickness)
-            side_group = cut_group.subtract(side_group)
+            right_side_group = cut_group.subtract(right_side_group)
             model.commit_operation
 
             # cut the dado for the back piece
@@ -91,7 +91,7 @@ module AdamExtensions
             cut_face = cut_group.entities.add_face(cut_rect.points)
             cut_face.reverse! if cut_face.normal.z > 0
             cut_face.pushpull(side_rect.height+in_thickness)
-            side_group = cut_group.subtract(side_group)
+            right_side_group = cut_group.subtract(right_side_group)
             model.commit_operation
 
             # cut the dado for the front piece
@@ -101,39 +101,20 @@ module AdamExtensions
             cut_face = cut_group.entities.add_face(cut_rect.points)
             cut_face.reverse! if cut_face.normal.z > 0
             cut_face.pushpull(side_rect.height+in_thickness)
-            cut_group.subtract(side_group)
+            right_side_group = cut_group.subtract(right_side_group)
             model.commit_operation
 
-=begin
-            # cut the dado for the back piece
-            min_y = side_rect.min_y + in_half_thickness
-            max_y = side_rect.min_y + in_thickness
-            start_z = side_rect.min_z + side_rect.height + in_half_thickness
-            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, min_y, start_z),
-                                          Geom::Point3d.new(max_x, max_y, start_z),
-                                          Geom::Point3d.new(min_x, max_y, start_z),
-                                          Geom::Point3d.new(min_x, min_y, start_z)])
-            model.start_operation("Side Right Rear Dado", true)
-            cut_rect._prnt("orig cut_rect")
-            cut_group = model.entities.add_group
-            cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.vertices.each {|vertex| pp vertex.position}
-            cut_face.reverse! if cut_face.normal.z > 0
-            cut_face.pushpull(side_rect.height+in_thickness)
-            side_group = cut_group.subtract(side_group)
+            # create a copy .. move to left side .. rotate 180 degrees
+            model.start_operation("Side Left Copy Move", true)
+            front_rect = face_map.to_rect_copy("front")
+            left_side_group = right_side_group.copy
+            move_params = Geom::Transformation.new(Geom::Point3d.new(-front_rect.width + in_thickness, 0, 0))
+            left_side_group.transform!(move_params)
             model.commit_operation
-
-             cut the dado for the front piece
-            model.start_operation("Side Right Front Dado", true)
-            cut_rect.move(0, Utils::mm_unit(side_rect.depth - in_thickness - cut_rect.depth), 0, units_type)
-            cut_rect._prnt("mv cut_rect")
-            cut_group = model.entities.add_group
-            cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.z > 0
-            cut_face.pushpull(side_rect.height+in_thickness)
-            #cut_group.subtract(side_group)
+            model.start_operation("Side Left Rotate 180", true)
+            rotate_params = Geom::Transformation.rotation(left_side_group.bounds.center, Z_AXIS, 180.degrees)
+            left_side_group.transform!(rotate_params)
             model.commit_operation
-=end
          end
         # @param [Hash] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
