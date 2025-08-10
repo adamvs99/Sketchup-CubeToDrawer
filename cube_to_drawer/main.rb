@@ -105,16 +105,16 @@ module AdamExtensions
             model.commit_operation
 
             # create a copy .. move to left side .. rotate 180 degrees
-            model.start_operation("Side Left Copy Move", true)
             front_rect = face_map.to_rect_copy("front")
-            left_side_group = right_side_group.copy
-            move_params = Geom::Transformation.new(Geom::Point3d.new(-front_rect.width + in_thickness, 0, 0))
-            left_side_group.transform!(move_params)
-            model.commit_operation
-            model.start_operation("Side Left Rotate 180", true)
-            rotate_params = Geom::Transformation.rotation(left_side_group.bounds.center, Z_AXIS, 180.degrees)
-            left_side_group.transform!(rotate_params)
-            model.commit_operation
+            Utils::copy_move_rotate_group(right_side_group, -front_rect.width + in_thickness, 0, 0, "imperial", Z_AXIS, 180)
+            #front_rect = face_map.to_rect_copy("front")
+            #left_side_group = right_side_group.copy
+            #move_params = Geom::Transformation.new(Geom::Point3d.new(-front_rect.width + in_thickness, 0, 0))
+            #left_side_group.transform!(move_params)
+            #model.commit_operation
+            #model.start_operation("Side Left Rotate 180", true)
+            #rotate_params = Geom::Transformation.rotation(left_side_group.bounds.center, Z_AXIS, 180.degrees)
+            #left_side_group.transform!(rotate_params)
          end
         # @param [Hash] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
@@ -158,6 +158,8 @@ module AdamExtensions
             cut_face.reverse! if cut_face.normal.z < 0
             cut_face.pushpull(base_rect.width)
             front_group = cut_group.subtract(front_group)
+            side_rect = face_map.to_rect_copy("left")
+            Utils::copy_move_rotate_group(front_group, 0, side_rect.depth - in_thickness, 0, "imperial", Z_AXIS, 180)
             model.commit_operation  # Slice Bottom Dado
 
             #model.start_operation("Copy Move Front Panel", true)

@@ -19,8 +19,9 @@ module AdamExtensions
             num * 25.4
         end
 
-        def copy_move_rotate_group(source_group, x, y, z, units_type, axis, angle_degrees)
+        def self.copy_move_rotate_group(source_group, x, y, z, units_type, axis, angle)
             new_group = source_group.copy
+            model = Sketchup.active_model
             model.start_operation("Copy Move Rotate", true)
             x = self.in_unit(x, units_type)
             y = self.in_unit(y, units_type)
@@ -30,11 +31,11 @@ module AdamExtensions
                 new_group.transform!(move_params)
             end
             unless axis==0
-                rotate_params = Geom::Transformation.rotation(new_group.bounds.center, axiz, angle_degrees)
+                rotate_params = Geom::Transformation.rotation(new_group.bounds.center, axis, angle.degrees)
                 new_group.transform!(rotate_params)
             end
             model.commit_operation
             new_group
-        end
+        end # def copy_move_rotate_group
     end # Utils
 end # AdamExtensions
