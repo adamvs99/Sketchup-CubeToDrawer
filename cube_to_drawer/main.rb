@@ -25,20 +25,20 @@ module AdamExtensions
             return unless face_map.key?("bottom")
             half_thickness = thickness/2
             in_half_thickness = Utils::in_unit(half_thickness, units_type)
-            bottom_rect = face_map.to_rect_copy("bottom", 0, 0, 0, units_type)
-            mid_rect = bottom_rect.copy(0, 0, half_thickness, units_type)
-            bottom_rect.expand(-thickness, -thickness, 0, units_type)
-            mid_rect.expand(-half_thickness, -half_thickness, 0, units_type)
+            bottom_rect = face_map.to_rect_copy("bottom", 0, 0, thickness, units_type)
+            bottom_rect.expand(-half_thickness, -half_thickness, 0, units_type)
+            mid_rect = face_map.to_rect_copy("bottom", 0, 0, half_thickness, units_type)
+            mid_rect.expand(-thickness, -thickness, 0, units_type)
             bottom_rect._prnt("bottom_rect")
             # create the group...
             model = Sketchup.active_model
             model.start_operation("Create Drawer Bottom Group", true)
             group = model.entities.add_group
             bottom_face = group.entities.add_face(bottom_rect.points)
-            bottom_face.reverse! if bottom_face.normal.z < 0
+            bottom_face.reverse! if bottom_face.normal.z > 0
             bottom_face.pushpull(in_half_thickness)
             mid_face = group.entities.add_face(mid_rect.points)
-            mid_face.reverse! if mid_face.normal.z < 0
+            mid_face.reverse! if mid_face.normal.z > 0
             mid_face.pushpull(in_half_thickness)
             model.commit_operation
         end
