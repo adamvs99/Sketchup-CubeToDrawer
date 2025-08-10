@@ -5,6 +5,8 @@
 #  Created by Adam Silver on 08/07/25.
 #  copyright Adam Silver © 2025 all rights reserved
 
+require 'sketchup.rb'
+
 module AdamExtensions
 
     module Utils
@@ -17,5 +19,22 @@ module AdamExtensions
             num * 25.4
         end
 
+        def copy_move_rotate_group(source_group, x, y, z, units_type, axis, angle_degrees)
+            new_group = source_group.copy
+            model.start_operation("Copy Move Rotate", true)
+            x = self.in_unit(x, units_type)
+            y = self.in_unit(y, units_type)
+            z = self.in_unit(z, units_type)
+            unless x==0 && y==0 && z==0
+                move_params = Geom::Transformation.new(Geom::Point3d.new(x, y, z))
+                new_group.transform!(move_params)
+            end
+            unless axis==0
+                rotate_params = Geom::Transformation.rotation(new_group.bounds.center, axiz, angle_degrees)
+                new_group.transform!(rotate_params)
+            end
+            model.commit_operation
+            new_group
+        end
     end # Utils
 end # AdamExtensions

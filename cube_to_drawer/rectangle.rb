@@ -24,25 +24,14 @@ module AdamExtensions
                                Geom::Point3d.new(corners[1]),
                                Geom::Point3d.new(corners[2]),
                                Geom::Point3d.new(corners[3])]
-                    # put the origin, ie, the min x,y,z point in
-                    # position 0
-                    mx = min_x
-                    my = min_y
-                    mz = min_z
-                    @points.each_with_index do |pt, index|
-                        if mx==pt.x && my==pt.y && mz==pt.z
-                            @points[0],@points[index] = @points[index],@points[0]
-                            break
-                        end
-                    end
                 end
             end
 
             def _prnt(title)
-                title += " " + orientation
+                puts "#{title} plane: #{orientation}   width: #{width} depth: #{depth} height: #{height}"
                 @points.each_with_index do |pt, index|
-                    title="" if index > 0
-                    puts title.ljust(20) + "[x: #{pt.x}, y: #{pt.y}, z: #{pt.z}]".ljust(40)
+                    #z = sprintf("%.9f", pt.z)
+                    puts " ".ljust(10) + "[x: #{pt.x}, y: #{pt.y}, z: #{pt.z}]".ljust(40)
                 end
             end
 

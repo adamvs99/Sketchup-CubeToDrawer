@@ -24,21 +24,21 @@ module AdamExtensions
             # gate this function in case face_map is empty
             return unless face_map.key?("bottom")
             half_thickness = thickness/2
-            top_rect = face_map.to_rect_copy("bottom", 0, 0, thickness)
-            top_rect.expand(-half_thickness, -half_thickness, 0, units_type)
-            # top_rect._prnt("top_rect")
-            mid_rect = face_map.to_rect_copy("bottom", 0, 0, half_thickness)
-            mid_rect.expand(-thickness, -thickness, 0, units_type)
+            in_half_thickness = Utils::in_unit(half_thickness, units_type)
+            bottom_rect = face_map.to_rect_copy("bottom", 0, 0, 0, units_type)
+            mid_rect = bottom_rect.copy(0, 0, half_thickness, units_type)
+            bottom_rect.expand(-thickness, -thickness, 0, units_type)
+            mid_rect.expand(-half_thickness, -half_thickness, 0, units_type)
+            bottom_rect._prnt("bottom_rect")
             # create the group...
             model = Sketchup.active_model
             model.start_operation("Create Drawer Bottom Group", true)
-            in_half_thickness = Utils::in_unit(half_thickness, units_type)
             group = model.entities.add_group
-            upper_face = group.entities.add_face(top_rect.points)
-            upper_face.reverse! if upper_face.normal.z > 0
-            upper_face.pushpull(in_half_thickness)
+            bottom_face = group.entities.add_face(bottom_rect.points)
+            bottom_face.reverse! if bottom_face.normal.z < 0
+            bottom_face.pushpull(in_half_thickness)
             mid_face = group.entities.add_face(mid_rect.points)
-            mid_face.reverse! if mid_face.normal.z > 0
+            mid_face.reverse! if mid_face.normal.z < 0
             mid_face.pushpull(in_half_thickness)
             model.commit_operation
         end
@@ -72,8 +72,8 @@ module AdamExtensions
             # points going clockwise on the X, Z plane...
             cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, start_y, min_z),
                                           Geom::Point3d.new(min_x, start_y, min_z),
-                                          Geom::Point3d.new(max_x, start_y, max_z),
-                                          Geom::Point3d.new(min_x, start_y, max_z)])
+                                          Geom::Point3d.new(min_x, start_y, max_z),
+                                          Geom::Point3d.new(max_x, start_y, max_z)])
             # cut bottom dado
             model.start_operation("Side Right Bottom Dado", true)
             cut_group = model.entities.add_group
@@ -122,22 +122,46 @@ module AdamExtensions
         def self.create_side_front_back_panels(face_map, thickness, units_type="metric")
             return unless face_map.key?("front")
             model = Sketchup.active_model
+            in_thickness = Utils::in_unit(thickness, units_type)
             half_thickness = thickness/2
             in_half_thickness = Utils::in_unit(half_thickness, units_type)
-            front_rect = face_map.to_rect_copy("front")
+            base_rect = face_map.to_rect_copy("front")
+
             model.start_operation("Create Front Panel", true)
-            front_rect.move(0, thickness, 0, units_type)
+            front_rect = base_rect.copy(0, thickness, 0, units_type)
             front_rect.expand(-half_thickness, 0, 0, units_type)
-            group = model.entities.add_group
-            front_face = group.entities.add_face(front_rect.points)
+            front_group = model.entities.add_group
+            front_face = front_group.entities.add_face(front_rect.points)
             front_face.reverse! if front_face.normal.z < 0
             front_face.pushpull(in_half_thickness)
             front_rect.move(0, -half_thickness, 0, units_type)
             front_rect.expand(-half_thickness, 0, 0, units_type)
-            front_face = group.entities.add_face(front_rect.points)
+            front_face = front_group.entities.add_face(front_rect.points)
             front_face.reverse! if front_face.normal.z < 0
             front_face.pushpull(in_half_thickness)
-            model.commit_operation
+            model.commit_operation  # Create Front Panel
+
+            model.start_operation("Slice Bottom Dado", true)
+            # cut the bottom dado
+            min_y = base_rect.min_y + in_half_thickness
+            max_y = min_y + in_thickness
+            min_z = base_rect.min_z + in_half_thickness
+            max_z = base_rect.min_z + in_thickness
+            start_x = base_rect.max_x
+            # points going clockwise on the X, Z plane...
+            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(start_x, min_y, min_z),
+                                          Geom::Point3d.new(start_x, min_y, max_z),
+                                          Geom::Point3d.new(start_x, max_y, max_z),
+                                          Geom::Point3d.new(start_x, max_y, min_z)])
+            cut_group = model.entities.add_group
+            cut_face = cut_group.entities.add_face(cut_rect.points)
+            cut_face.reverse! if cut_face.normal.z < 0
+            cut_face.pushpull(base_rect.width)
+            front_group = cut_group.subtract(front_group)
+            model.commit_operation  # Slice Bottom Dado
+
+            #model.start_operation("Copy Move Front Panel", true)
+            #model.commit_operation  # Slice Bottom Dado
         end
 
         #-------------------------------------------------------------------------------
