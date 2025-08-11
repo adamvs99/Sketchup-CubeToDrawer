@@ -24,8 +24,27 @@ module AdamExtensions
                                Geom::Point3d.new(corners[1]),
                                Geom::Point3d.new(corners[2]),
                                Geom::Point3d.new(corners[3])]
+                    #sort_rect
                 end
             end
+
+            def sort_rect
+                plane = orientation
+                if plane=="xy"
+                    mn_x = min_x; mx_x = max_x; mn_y = min_y; mx_y = max_y
+                    new_points =[[mn_x, mn_y], [mn_x, mx_y], [mx_x, mx_y], [mx_x, mn_y]]
+                    @points.each_with_index {|pt, index| pt.x = new_points[index][0]; pt.y = new_points[index][1]}
+                elsif plane=="xz"
+                    mn_x = min_x; mx_x = max_x; mn_z = min_z; mx_z = max_z
+                    new_points =[[mn_x, mn_z], [mn_x, mx_z], [mx_x, mx_z], [mx_x, mn_z]]
+                    @points.each_with_index {|pt, index| pt.x = new_points[index][0]; pt.z = new_points[index][1]}
+                else # plane=="yz"
+                    mn_y = min_y; mx_y = max_y; mn_z = min_z; mx_z = max_z
+                    new_points =[[mn_y, mn_z], [mn_y, mx_z], [mx_y, mx_z], [mx_y, mn_z]]
+                    @points.each_with_index {|pt, index| pt.y = new_points[index][0]; pt.z = new_points[index][1]}
+                end
+                self
+            end #_sort
 
             def _prnt(title)
                 puts "#{title} plane: #{orientation}   width: #{width} depth: #{depth} height: #{height}"
@@ -96,17 +115,6 @@ module AdamExtensions
                 height==0 ? "xy" : width==0 ? :"yz" : "xz"
             end
 
-            def _xz_to_xy
-                new_z = min_z
-                z_max = max_z
-                h = height
-                y_max = max_y
-                @points.each do |pt|
-                    pt.y += h if pt.z == z_max
-                    pt.z = new_z
-                end
-            end
-
             def flip(new_orientation)
                 return self if new_orientation==orientation
                 orig_orientation = orientation
@@ -118,7 +126,11 @@ module AdamExtensions
                     end
                 elsif orig_orientation=="xz"
                     if new_orientation=="xy"
-                        _xz_to_xy
+                        mn_x = min_x; mx_x = max_x
+                        mn_y = min_y; mx_y = min_y + height
+                        z = min_z
+                        new_points =[[mn_x, mn_y], [mn_x, mx_y], [mx_x, mx_y], [mx_x, mn_y]]
+                        @points.each_with_index {|pt, index| pt.x = new_points[index][0]; pt.y = new_points[index][1]; pt.z = z}
                     elsif new_orientation=="yz"
                         #TODO
                     end
