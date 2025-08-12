@@ -23,22 +23,48 @@ module AdamExtensions
         def self.create_bottom_panel(face_map, thickness, units_type="metric")
             # gate this function in case face_map is empty
             return unless face_map!=nil && face_map.key?("bottom")
+            model = Sketchup.active_model
             half_thickness = thickness/2
+            in_thickness = Utils::in_unit(thickness, units_type)
             in_half_thickness = Utils::in_unit(half_thickness, units_type)
             bottom_rect = face_map.to_rect_copy("bottom", 0, 0, thickness, units_type)
             bottom_rect.expand(-half_thickness, -half_thickness, 0, units_type)
-            mid_rect = face_map.to_rect_copy("bottom", 0, 0, half_thickness, units_type)
-            mid_rect.expand(-thickness, -thickness, 0, units_type)
-            # create the group...
-            model = Sketchup.active_model
+
             model.start_operation("Create Drawer Bottom Group", true)
-            group = model.entities.add_group
-            bottom_face = group.entities.add_face(bottom_rect.points)
+            bottom_group = model.entities.add_group
+            bottom_face = bottom_group.entities.add_face(bottom_rect.points)
             bottom_face.reverse! if bottom_face.normal.z > 0
-            bottom_face.pushpull(in_half_thickness)
-            mid_face = group.entities.add_face(mid_rect.points)
-            mid_face.reverse! if mid_face.normal.z > 0
-            mid_face.pushpull(in_half_thickness)
+            bottom_face.pushpull(in_thickness)
+            model.commit_operation
+
+            # cut left right rabbets
+            min_x = bottom_rect.max_x - in_half_thickness
+            max_x = bottom_rect.max_x + in_half_thickness
+            min_z = bottom_rect.min_z - in_thickness - in_half_thickness
+            max_z = bottom_rect.max_z - in_half_thickness
+            all_y = bottom_rect.min_y - in_half_thickness
+            # points going clockwise on the X, Z plane...
+            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(min_x, all_y, min_z),
+                                          Geom::Point3d.new(min_x, all_y, max_z),
+                                          Geom::Point3d.new(max_x, all_y, max_z),
+                                          Geom::Point3d.new(max_x, all_y, min_z)])
+            model.start_operation("Bottom Right Rabbet", true)
+            bottom_group = Utils::cut_channel(model, bottom_group, cut_rect, bottom_rect.depth+in_thickness, "y", "lt")
+            model.commit_operation
+
+            cut_rect.move(-bottom_rect.width, 0, 0, "imperial")
+            model.start_operation("Bottom Left Rabbet", true)
+            bottom_group = Utils::cut_channel(model, bottom_group, cut_rect, bottom_rect.depth+in_thickness, "y", "lt")
+            model.commit_operation
+
+            cut_rect.flip("yz")
+            model.start_operation("Bottom Front Rabbet", true)
+            bottom_group = Utils::cut_channel(model, bottom_group, cut_rect, bottom_rect.width+in_thickness, "x", "lt")
+            model.commit_operation
+
+            cut_rect.move(0, bottom_rect.depth, 0, "imperial")
+            model.start_operation("Bottom Rear Rabbet", true)
+            Utils::cut_channel(model, bottom_group, cut_rect, bottom_rect.width+in_thickness, "x", "lt")
             model.commit_operation
         end #self.create_bottom_panel
 
@@ -142,12 +168,12 @@ module AdamExtensions
                                           Geom::Point3d.new(min_x, max_y, all_z),
                                           Geom::Point3d.new(max_x, max_y, all_z),
                                           Geom::Point3d.new(max_x, min_y, all_z)])
-            model.start_operation("Slice Right Rabbit", true)
+            model.start_operation("Slice Right Rabbet", true)
             front_group = Utils::cut_channel(model, front_group, cut_rect, base_rect.height + in_thickness)
             model.commit_operation  # Create Front Panel
 
             cut_rect.move(-base_rect.width + in_thickness, 0, 0, "imperial")
-            model.start_operation("Slice Left Rabbit", true)
+            model.start_operation("Slice Left Rabbet", true)
             front_group = Utils::cut_channel(model, front_group, cut_rect, base_rect.height + in_thickness)
             model.commit_operation  # Create Front Panel
 
