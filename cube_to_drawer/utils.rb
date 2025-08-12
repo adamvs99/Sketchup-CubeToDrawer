@@ -19,6 +19,23 @@ module AdamExtensions
             num * 25.4
         end
 
+        def self.cut_channel(model, target_group, cut_rect, cut_length, plane = "z", direction = "gt")
+            cut_group = model.entities.add_group
+            cut_face = cut_group.entities.add_face(cut_rect.points)
+            case plane
+            when "z"
+                reverse_cut = direction=="gt" ? cut_face.normal.z > 0 : cut_face.normal.z < 0
+            when "x"
+                reverse_cut = direction=="gt" ? cut_face.normal.x > 0 : cut_face.normal.x < 0
+            when "y"
+                reverse_cut = direction=="gt" ? cut_face.normal.y > 0 : cut_face.normal.y < 0
+            else
+                # raise
+            end
+            cut_face.reverse! if reverse_cut
+            cut_face.pushpull(cut_length)
+            cut_group.subtract(target_group)
+        end
         def self.copy_move_rotate_group(source_group, x, y, z, units_type, axis, angle)
             new_group = source_group.copy
             model = Sketchup.active_model
