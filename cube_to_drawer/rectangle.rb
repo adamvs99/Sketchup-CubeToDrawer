@@ -30,18 +30,21 @@ module AdamExtensions
 
             def sort_rect
                 plane = orientation
-                if plane=="xy"
+                case plane
+                when "xy"
                     mn_x = min_x; mx_x = max_x; mn_y = min_y; mx_y = max_y
                     new_points =[[mn_x, mn_y], [mn_x, mx_y], [mx_x, mx_y], [mx_x, mn_y]]
                     @points.each_with_index {|pt, index| pt.x = new_points[index][0]; pt.y = new_points[index][1]}
-                elsif plane=="xz"
+                when "xz"
                     mn_x = min_x; mx_x = max_x; mn_z = min_z; mx_z = max_z
                     new_points =[[mn_x, mn_z], [mn_x, mx_z], [mx_x, mx_z], [mx_x, mn_z]]
                     @points.each_with_index {|pt, index| pt.x = new_points[index][0]; pt.z = new_points[index][1]}
-                else # plane=="yz"
+                when "yz"
                     mn_y = min_y; mx_y = max_y; mn_z = min_z; mx_z = max_z
                     new_points =[[mn_y, mn_z], [mn_y, mx_z], [mx_y, mx_z], [mx_y, mn_z]]
                     @points.each_with_index {|pt, index| pt.y = new_points[index][0]; pt.z = new_points[index][1]}
+                else
+                    # type code here
                 end
                 self
             end #_sort
@@ -118,13 +121,14 @@ module AdamExtensions
             def flip(new_orientation)
                 return self if new_orientation==orientation
                 orig_orientation = orientation
-                if orig_orientation=="xy"
+                case orig_orientation
+                when "xy"
                     if new_orientation=="xz"
                         #TODO
                     elsif new_orientation=="yz"
                         #TODO
                     end
-                elsif orig_orientation=="xz"
+                when "xz"
                     if new_orientation=="xy"
                         mn_y = min_y; mx_y = min_y + height
                         z = min_z
@@ -136,12 +140,14 @@ module AdamExtensions
                         new_y = [mn_y, mx_y, mx_y, mn_y]
                         @points.each_with_index {|pt, index| pt.x = mn_x; pt.y = new_y[index]}
                     end
-                else # orig_orientation=="yz"
+                when "yz"
                     if new_orientation=="xy"
                         #TODO
                     elsif new_orientation=="xz"
                         #TODO
                     end
+                else
+                    # type code here
                 end
                 self
             end
@@ -193,30 +199,33 @@ module AdamExtensions
             def change_edge(edge, amount, units_type="metric")
                 return unless amount!=0
                 amount = Utils::in_unit(amount, units_type)
-                if edge == "bottom"
+                case edge
+                when "bottom"
                     return unless ["xz", "yz"].include? orientation
                     mz = min_z
                     @points.each {|pt| pt.z += amount if pt.z==mz}
-                elsif edge == "top"
+                when "top"
                     return unless ["xz", "yz"].include? orientation
                     mz = max_z
                     @points.each {|pt| pt.z += amount if pt.z==mz}
-                elsif edge == "front"
+                when "front"
                     return unless ["xy", "yz"].include? orientation
                     my = min_y
                     @points.each {|pt| pt.y += amount if pt.y==my}
-                elsif edge == "back"
+                when "back"
                     return unless ["xy", "yz"].include? orientation
                     my = max_y
                     @points.each {|pt| pt.y += amount if pt.y==my}
-                elsif edge == "left"
+                when "left"
                     return unless ["xy", "xz"].include? orientation
                     mx = min_x
                     @points.each {|pt| pt.x += amount if pt.x==mx}
-                elsif edge == "right"
+                when "right"
                     return unless ["xy", "xz"].include? orientation
                     mx = max_x
                     @points.each {|pt| pt.x += amount if pt.x==mx}
+                else
+                    # type code here
                 end
             end
         end # class Rect
