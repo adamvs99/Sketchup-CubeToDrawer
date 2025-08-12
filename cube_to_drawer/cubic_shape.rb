@@ -33,8 +33,9 @@ module AdamExtensions
                         _sort_faces("bottom", "top", face_points, z_pos[0]) unless _loading("bottom", "top", face_points, z_pos[0])
                     end
                 end
-                _prnt
+                #_prnt
                 group.erase! if action.include? "erase"
+                self
             end # def initialize
 
             def _prnt
