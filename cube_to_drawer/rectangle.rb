@@ -137,7 +137,7 @@ module AdamExtensions
                     elsif new_orientation=="yz"
                         mn_x = min_x
                         mn_y = min_y; mx_y = min_y + width
-                        new_y = [mn_y, mx_y, mx_y, mn_y]
+                        new_y = [mn_y, mn_y, mx_y, mx_y]
                         @points.each_with_index {|pt, index| pt.x = mn_x; pt.y = new_y[index]}
                     end
                 when "yz"
