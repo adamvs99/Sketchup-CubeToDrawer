@@ -24,7 +24,7 @@ module AdamExtensions
                                Geom::Point3d.new(corners[1]),
                                Geom::Point3d.new(corners[2]),
                                Geom::Point3d.new(corners[3])]
-                    #sort_rect
+                    sort_rect
                 end
             end
 
@@ -47,7 +47,7 @@ module AdamExtensions
             end #_sort
 
             def _prnt(title)
-                puts "#{title} plane: #{orientation}   width: #{width} depth: #{depth} height: #{height}"
+                puts "#{title} plane: #{orientation}   width: #{Utils::mm_unit(width)} depth: #{Utils::mm_unit(depth)} height: #{Utils::mm_unit(height)}"
                 @points.each_with_index do |pt, index|
                     #z = sprintf("%.9f", pt.z)
                     puts " ".ljust(10) + "[x: #{pt.x}, y: #{pt.y}, z: #{pt.z}]".ljust(40)
@@ -126,13 +126,15 @@ module AdamExtensions
                     end
                 elsif orig_orientation=="xz"
                     if new_orientation=="xy"
-                        mn_x = min_x; mx_x = max_x
                         mn_y = min_y; mx_y = min_y + height
                         z = min_z
-                        new_points =[[mn_x, mn_y], [mn_x, mx_y], [mx_x, mx_y], [mx_x, mn_y]]
-                        @points.each_with_index {|pt, index| pt.x = new_points[index][0]; pt.y = new_points[index][1]; pt.z = z}
+                        new_y = [mn_y, mx_y, mx_y, mn_y]
+                        @points.each_with_index {|pt, index| pt.y = new_y[index]; pt.z = z}
                     elsif new_orientation=="yz"
-                        #TODO
+                        mn_x = min_x
+                        mn_y = min_y; mx_y = min_y + width
+                        new_y = [mn_y, mx_y, mx_y, mn_y]
+                        @points.each_with_index {|pt, index| pt.x = mn_x; pt.y = new_y[index]}
                     end
                 else # orig_orientation=="yz"
                     if new_orientation=="xy"
@@ -154,8 +156,7 @@ module AdamExtensions
             end
 
             def copy(x=0, y=0, z=0, units_type="metric")
-                new_rect = Rect.new([])
-                @points.each {|pt| new_rect << Geom::Point3d.new([pt.x, pt.y, pt.z])}
+                new_rect = Rect.new(@points)
                 new_rect.move(x, y, z, units_type)
                 new_rect
             end
