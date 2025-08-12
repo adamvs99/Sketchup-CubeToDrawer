@@ -67,40 +67,28 @@ module AdamExtensions
             max_x = side_rect.min_x - in_half_thickness
             min_z = side_rect.min_z + in_half_thickness
             max_z = side_rect.min_z + in_thickness
-            start_y = side_rect.min_y - in_half_thickness
+            all_y = side_rect.min_y - in_half_thickness
             # points going clockwise on the X, Z plane...
-            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, start_y, min_z),
-                                          Geom::Point3d.new(min_x, start_y, min_z),
-                                          Geom::Point3d.new(min_x, start_y, max_z),
-                                          Geom::Point3d.new(max_x, start_y, max_z)])
+            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, all_y, min_z),
+                                          Geom::Point3d.new(min_x, all_y, min_z),
+                                          Geom::Point3d.new(min_x, all_y, max_z),
+                                          Geom::Point3d.new(max_x, all_y, max_z)])
             # cut bottom dado
             model.start_operation("Side Right Bottom Dado", true)
-            cut_group = model.entities.add_group
-            cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.y < 0
-            cut_face.pushpull(side_rect.depth+in_thickness)
-            right_side_group = cut_group.subtract(right_side_group)
+            right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.depth+in_thickness, "y", "lt")
             model.commit_operation
 
             # cut the dado for the back piece
-            model.start_operation("Side Right Rear Dado", true)
             cut_rect.move(0, thickness, Utils::mm_unit(side_rect.height), units_type)
             cut_rect.flip("xy")
-            cut_group = model.entities.add_group
-            cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.z > 0
-            cut_face.pushpull(side_rect.height+in_thickness)
-            right_side_group = cut_group.subtract(right_side_group)
+            model.start_operation("Side Right Rear Dado", true)
+            right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.height+in_thickness)
             model.commit_operation
 
             # cut the dado for the front piece
-            model.start_operation("Side Right Front Dado", true)
             cut_rect.move(0, Utils::mm_unit(side_rect.depth) - thickness - half_thickness, 0, units_type)
-            cut_group = model.entities.add_group
-            cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.z > 0
-            cut_face.pushpull(side_rect.height+in_thickness)
-            right_side_group = cut_group.subtract(right_side_group)
+            model.start_operation("Side Right Front Dado", true)
+             right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.height+in_thickness)
             model.commit_operation
 
             # create a copy .. move to left side .. rotate 180 degrees
@@ -124,7 +112,7 @@ module AdamExtensions
             front_rect.expand(-half_thickness, 0, 0, units_type)
             front_group = model.entities.add_group
             front_face = front_group.entities.add_face(front_rect.points)
-            front_face.reverse! if front_face.normal.z > 0
+            front_face.reverse! if front_face.normal.y < 0
             front_face.pushpull(in_thickness)
             model.commit_operation  # Create Front Panel
 
@@ -141,11 +129,8 @@ module AdamExtensions
                                           Geom::Point3d.new(all_x, min_y, max_z),
                                           Geom::Point3d.new(all_x, max_y, max_z),
                                           Geom::Point3d.new(all_x, max_y, min_z)])
-            cut_group = model.entities.add_group
-            cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.z > 0
-            cut_face.pushpull(base_rect.width)
-            front_group = cut_group.subtract(front_group)
+            front_group = Utils::cut_channel(model, front_group, cut_rect, base_rect.width, "x")
+            model.commit_operation  # Create Front Panel
 
             # create the left and right insets...
             min_y = base_rect.min_y - in_half_thickness
@@ -157,18 +142,14 @@ module AdamExtensions
                                           Geom::Point3d.new(min_x, max_y, all_z),
                                           Geom::Point3d.new(max_x, max_y, all_z),
                                           Geom::Point3d.new(max_x, min_y, all_z)])
-            cut_group = model.entities.add_group
-            cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.z > 0
-            cut_face.pushpull(base_rect.height + in_thickness)
-            front_group = cut_group.subtract(front_group)
+            model.start_operation("Slice Right Rabbit", true)
+            front_group = Utils::cut_channel(model, front_group, cut_rect, base_rect.height + in_thickness)
+            model.commit_operation  # Create Front Panel
 
             cut_rect.move(-base_rect.width + in_thickness, 0, 0, "imperial")
-            cut_group = model.entities.add_group
-            cut_face = cut_group.entities.add_face(cut_rect.points)
-            cut_face.reverse! if cut_face.normal.z > 0
-            cut_face.pushpull(base_rect.height + in_thickness)
-            front_group = cut_group.subtract(front_group)
+            model.start_operation("Slice Left Rabbit", true)
+            front_group = Utils::cut_channel(model, front_group, cut_rect, base_rect.height + in_thickness)
+            model.commit_operation  # Create Front Panel
 
             side_rect = face_map.to_rect_copy("left")
             Utils::copy_move_rotate_group(front_group, 0, side_rect.depth - in_thickness, 0, "imperial", Z_AXIS, 180)
