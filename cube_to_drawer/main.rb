@@ -16,6 +16,13 @@ module AdamExtensions
 
     module CubeToDrawer
 
+        class << self
+            attr_accessor:_units_type
+            attr_accessor:_cube_map
+        end
+
+        self._units_type = "metric"
+        self._cube_map = nil
 
         # @param [CubeMap] facemap faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
@@ -182,19 +189,22 @@ module AdamExtensions
             model.commit_operation  # Slice Bottom Dado
         end # def self.create_side_front_back_panels
 
+        def self.update
+            self.create_bottom_panel(self._cube_map, 12)
+            self.create_left_right_panels(self._cube_map, 12)
+            self.create_front_back_panels(self._cube_map, 12)
+        end
+
         #-------------------------------------------------------------------------------
         #  main Module code....
         #-------------------------------------------------------------------------------
         def self.ctd_main
             sel = Sketchup.active_model.selection
-            cube_map = nil
             unless sel.length != 1
-                cube_map = CubicShape::CubeMap.new(sel[0], "erase")
+                self._cube_map = CubicShape::CubeMap.new(sel[0], "erase")
                 sel.clear
             end
-            self.create_bottom_panel(cube_map, 12)
-            self.create_left_right_panels(cube_map, 12)
-            self.create_front_back_panels(cube_map, 12)
+            self.update
         end # def ctd_main
 
         unless file_loaded(__FILE__)
