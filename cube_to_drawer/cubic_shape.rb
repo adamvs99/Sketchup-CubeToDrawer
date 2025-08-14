@@ -38,6 +38,12 @@ module AdamExtensions
                 self
             end # def initialize
 
+            def valid?
+                #@_cube_map.key?("bottom") && @_cube_map.key?("top") &&
+                #@_cube_map.key?("left") && @_cube_map.key?("right") &&
+                #@_cube_map.key?("front") && @_cube_map.key?("back")
+                @_cube_map.size == 6
+            end
             def _prnt
                 @_cube_map.each do |face, data|
                     puts face.ljust(8)   +   (data[:face_points][0]).to_s.ljust(22)
