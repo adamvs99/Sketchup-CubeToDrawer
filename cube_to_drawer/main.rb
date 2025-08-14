@@ -10,6 +10,7 @@ require 'extensions.rb'
 require_relative 'cubic_shape'
 require_relative 'rectangle'
 require_relative 'utils'
+require_relative 'units_dialog'
 require 'pp'
 
 module AdamExtensions
@@ -29,7 +30,7 @@ module AdamExtensions
         # @param [String] context to convert thickness numeric
         def self.create_bottom_panel(face_map, thickness, units_type="metric")
             # gate this function in case face_map is empty
-            return unless face_map!=nil && face_map.key?("bottom")
+            return unless face_map&.valid?
             model = Sketchup.active_model
             half_thickness = thickness/2
             in_thickness = Utils::in_unit(thickness, units_type)
@@ -79,7 +80,7 @@ module AdamExtensions
         # @param [Numeric] thickness of sides of drawer in mm
         # @param [String] context to convert thickness numeric
         def self.create_left_right_panels(face_map, thickness, units_type="metric")
-            return unless  face_map!=nil && face_map.key?("right") && face_map.key?("front")
+            return unless face_map&.valid?
 
             half_thickness = thickness/2
             in_thickness = Utils::in_unit(thickness, units_type)
@@ -133,7 +134,7 @@ module AdamExtensions
         # @param [Numeric] thickness of sides of drawer in mm
         # @param [String] context to convert thickness numeric
         def self.create_front_back_panels(face_map, thickness, units_type="metric")
-            return unless face_map!=nil && face_map.key?("front") && face_map.key?("left")
+            return unless face_map&.valid?
             model = Sketchup.active_model
             in_thickness = Utils::in_unit(thickness, units_type)
             half_thickness = thickness/2
@@ -190,6 +191,7 @@ module AdamExtensions
         end # def self.create_side_front_back_panels
 
         def self.update
+            return unless self._cube_map&.valid?
             self.create_bottom_panel(self._cube_map, 12)
             self.create_left_right_panels(self._cube_map, 12)
             self.create_front_back_panels(self._cube_map, 12)
