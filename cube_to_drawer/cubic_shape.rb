@@ -47,16 +47,21 @@ module AdamExtensions
                 end
             end
             def _loading(key_1, key_2, face_points, plane)
-                if @_cube_map.key?(key_1) && @_cube_map.key?(key_2)
-                    return false
-                else
-                    @_cube_map[key_1] = {"face_points": face_points, "plane": plane}
-                    @_cube_map[key_2] = {"face_points": face_points, "plane": plane}
-                end
-                return true
+                # this loads the initial values into both keys, e.g., "top", "bottom",
+                # and returns 'true' meaning it WAS loading
+                return false if @_cube_map.key?(key_1) && @_cube_map.key?(key_2)
+                @_cube_map[key_1] = {"face_points": face_points, "plane": plane}
+                @_cube_map[key_2] = {"face_points": face_points, "plane": plane}
+                true
             end #_loading
 
             def _sort_faces(key_1, key_2, face_points, plane)
+                # both keys will be the same after loading so this
+                # puts the 'opposite' key in the correct spot, by
+                # which plane is indicated. E.g. if the "top" values
+                # were loaded into both "top" and "bottom" keys the "bottom"
+                # would replace the first of the key pair because it's 'plane',
+                # or Z plane in this case is less than the "top" plane.
                 if plane < @_cube_map[key_1][:plane]
                     @_cube_map[key_1][:face_points] = face_points
                     @_cube_map[key_1][:plane] = plane
