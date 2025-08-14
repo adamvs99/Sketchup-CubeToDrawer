@@ -206,6 +206,7 @@ module AdamExtensions
                 self._cube_map = CubicShape::CubeMap.new(sel[0], "erase")
                 sel.clear
             end
+            UnitsDialog.show
             self.update
         end # def ctd_main
 
