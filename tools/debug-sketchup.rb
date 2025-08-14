@@ -5,6 +5,8 @@ sketchup_version = ARGV[0].to_i
 
 # Debugging only possible in SketchUp 2014 and newer as debugger protocol was
 # introduced for Ruby 2.0.
+extension_path = "/Users/adamvs/Library/Mobile\ Documents/com\~apple\~CloudDocs/Dev/Sketchup\ Ruby/CubeDebug"#File.dirname(__FILE__)
+$LOAD_PATH << extension_path unless $LOAD_PATH.include?(extension_path)
 version = "20#{sketchup_version}"
 
 debug_args = '-rdebug "ide port=6162"'
