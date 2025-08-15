@@ -119,7 +119,7 @@ module AdamExtensions
 
             # cut the bottom dado
             min_x = side_rect.min_x - in_thickness - in_dado_thickness
-            max_x = side_rect.min_x - in_dado_thickness- in_dado_thickness
+            max_x = side_rect.min_x - in_thickness + in_dado_thickness
             min_z = side_rect.min_z + in_thickness - in_dado_thickness
             max_z = side_rect.min_z + in_thickness
             all_y = side_rect.min_y - in_dado_thickness
@@ -133,16 +133,15 @@ module AdamExtensions
             right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.depth+in_thickness, "y", "lt")
             model.commit_operation
 
-            # cut the dado for the back piece
-            cut_rect.move(0, self._sheet_thickness+in_dado_thickness, Utils::mm_unit(side_rect.height), self._units_type)
+            # cut the dado for the front piece
+            cut_rect.move(0, self._sheet_thickness, Utils::mm_unit(side_rect.height), self._units_type)
             cut_rect.flip("xy")
             model.start_operation("Side Right Rear Dado", true)
             right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.height+in_thickness)
             model.commit_operation
 
             # cut the dado for the front piece
-            move_y = Utils::mm_unit(side_rect.depth) - self._sheet_thickness - self._dado_thickness - self._dado_thickness
-            cut_rect.move(0, move_y, 0, self._units_type)
+            cut_rect.move(0, Utils::mm_unit(side_rect.depth) - self._sheet_thickness * 2 + self._dado_thickness, 0, self._units_type)
             model.start_operation("Side Right Front Dado", true)
             right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.height+in_thickness)
             self._current_groups << right_side_group
