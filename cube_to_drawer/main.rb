@@ -20,23 +20,31 @@ module AdamExtensions
         class << self
             attr_accessor:_units_type
             attr_accessor:_cube_map
+            attr_accessor:_sheet_thickness
+            attr_accessor:_dado_thickness
         end
 
         self._units_type = "metric"
         self._cube_map = nil
+        self._sheet_thickness = 18
+        self._dado_thickness = 6
 
+        def self.on_change_sheet_thickness(new_sheet_thickness)
+            return if new_sheet_thickness==self._sheet_thickness
+            self._sheet_thickness = new_sheet_thickness
+            self.update
+        end
         # @param [CubeMap] facemap faces from selected cube
-        # @param [Numeric] thickness of sides of drawer in mm
-        # @param [String] context to convert thickness numeric
-        def self.create_bottom_panel(face_map, thickness, units_type="metric")
+        # @param [Numeric] self._sheet_thickness of sides of drawer in mm
+        # @param [String] context to convert self._sheet_thickness numeric
+        def self.create_bottom_panel(face_map)
             # gate this function in case face_map is empty
             return unless face_map&.valid?
             model = Sketchup.active_model
-            half_thickness = thickness/2
-            in_thickness = Utils::in_unit(thickness, units_type)
-            in_half_thickness = Utils::in_unit(half_thickness, units_type)
-            bottom_rect = face_map.to_rect_copy("bottom", 0, 0, thickness, units_type)
-            bottom_rect.expand(-half_thickness, -half_thickness, 0, units_type)
+            in_thickness = Utils::in_unit(self._sheet_thickness, self._units_type)
+            in_dado_thickness = Utils::in_unit(self._dado_thickness, self._units_type)
+            bottom_rect = face_map.to_rect_copy("bottom", 0, 0, self._sheet_thickness, self._units_type)
+            bottom_rect.expand(-self._dado_thickness, -self._dado_thickness, 0, self._units_type)
 
             model.start_operation("Create Drawer Bottom Group", true)
             bottom_group = model.entities.add_group
@@ -46,11 +54,11 @@ module AdamExtensions
             model.commit_operation
 
             # cut left right rabbets
-            min_x = bottom_rect.max_x - in_half_thickness
-            max_x = bottom_rect.max_x + in_half_thickness
-            min_z = bottom_rect.min_z - in_thickness - in_half_thickness
-            max_z = bottom_rect.max_z - in_half_thickness
-            all_y = bottom_rect.min_y - in_half_thickness
+            min_x = bottom_rect.max_x - in_dado_thickness
+            max_x = bottom_rect.max_x + in_dado_thickness
+            min_z = bottom_rect.min_z - in_thickness - in_dado_thickness
+            max_z = bottom_rect.max_z - in_dado_thickness
+            all_y = bottom_rect.min_y - in_dado_thickness
             # points going clockwise on the X, Z plane...
             cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(min_x, all_y, min_z),
                                           Geom::Point3d.new(min_x, all_y, max_z),
@@ -77,14 +85,13 @@ module AdamExtensions
         end #self.create_bottom_panel
 
         # @param [Hash] face_map faces from selected cube
-        # @param [Numeric] thickness of sides of drawer in mm
-        # @param [String] context to convert thickness numeric
-        def self.create_left_right_panels(face_map, thickness, units_type="metric")
+        # @param [Numeric] self._sheet_thickness of sides of drawer in mm
+        # @param [String] context to convert self._sheet_thickness numeric
+        def self.create_left_right_panels(face_map)
             return unless face_map&.valid?
 
-            half_thickness = thickness/2
-            in_thickness = Utils::in_unit(thickness, units_type)
-            in_half_thickness = Utils::in_unit(half_thickness, units_type)
+            in_thickness = Utils::in_unit(self._sheet_thickness, self._units_type)
+            in_dado_thickness = Utils::in_unit(self._dado_thickness, self._units_type)
             side_rect = face_map.to_rect_copy("right")
             # create a face of the cut elongated cube item juts back of the 'front' of the initial cube
             model = Sketchup.active_model
@@ -97,11 +104,11 @@ module AdamExtensions
             model.commit_operation
 
             # cut the bottom dado
-            min_x = side_rect.min_x - in_thickness - in_half_thickness
-            max_x = side_rect.min_x - in_half_thickness
-            min_z = side_rect.min_z + in_half_thickness
+            min_x = side_rect.min_x - in_thickness - in_dado_thickness
+            max_x = side_rect.min_x - in_dado_thickness- in_dado_thickness
+            min_z = side_rect.min_z + in_thickness - in_dado_thickness
             max_z = side_rect.min_z + in_thickness
-            all_y = side_rect.min_y - in_half_thickness
+            all_y = side_rect.min_y - in_dado_thickness
             # points going clockwise on the X, Z plane...
             cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, all_y, min_z),
                                           Geom::Point3d.new(min_x, all_y, min_z),
@@ -113,16 +120,17 @@ module AdamExtensions
             model.commit_operation
 
             # cut the dado for the back piece
-            cut_rect.move(0, thickness, Utils::mm_unit(side_rect.height), units_type)
+            cut_rect.move(0, self._sheet_thickness+in_dado_thickness, Utils::mm_unit(side_rect.height), self._units_type)
             cut_rect.flip("xy")
             model.start_operation("Side Right Rear Dado", true)
             right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.height+in_thickness)
             model.commit_operation
 
             # cut the dado for the front piece
-            cut_rect.move(0, Utils::mm_unit(side_rect.depth) - thickness - half_thickness, 0, units_type)
+            move_y = Utils::mm_unit(side_rect.depth) - self._sheet_thickness - self._dado_thickness - self._dado_thickness
+            cut_rect.move(0, move_y, 0, self._units_type)
             model.start_operation("Side Right Front Dado", true)
-             right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.height+in_thickness)
+            right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.height+in_thickness)
             model.commit_operation
 
             # create a copy .. move to left side .. rotate 180 degrees
@@ -133,17 +141,16 @@ module AdamExtensions
         # @param [Hash] face_map faces from selected cube
         # @param [Numeric] thickness of sides of drawer in mm
         # @param [String] context to convert thickness numeric
-        def self.create_front_back_panels(face_map, thickness, units_type="metric")
+        def self.create_front_back_panels(face_map)
             return unless face_map&.valid?
             model = Sketchup.active_model
-            in_thickness = Utils::in_unit(thickness, units_type)
-            half_thickness = thickness/2
-            in_half_thickness = Utils::in_unit(half_thickness, units_type)
+            in_thickness = Utils::in_unit(self._sheet_thickness, self._units_type)
+            in_dado_thickness = Utils::in_unit(self._dado_thickness, self._units_type)
             base_rect = face_map.to_rect_copy("front")
 
             model.start_operation("Create Front Panel", true)
             front_rect = base_rect.copy()
-            front_rect.expand(-half_thickness, 0, 0, units_type)
+            front_rect.expand(-self._sheet_thickness+self._dado_thickness, 0, 0, self._units_type)
             front_group = model.entities.add_group
             front_face = front_group.entities.add_face(front_rect.points)
             front_face.reverse! if front_face.normal.y < 0
@@ -152,9 +159,9 @@ module AdamExtensions
 
             model.start_operation("Slice Bottom Dado", true)
             # cut the bottom dado
-            min_y = base_rect.min_y + in_half_thickness
-            max_y = min_y + in_thickness
-            min_z = base_rect.min_z + in_half_thickness
+            min_y = base_rect.min_y + in_thickness - in_dado_thickness
+            max_y = min_y + in_dado_thickness * 2
+            min_z = base_rect.min_z + in_thickness - in_dado_thickness
             max_z = base_rect.min_z + in_thickness
             all_x = base_rect.max_x
 
@@ -167,11 +174,11 @@ module AdamExtensions
             model.commit_operation  # Create Front Panel
 
             # create the left and right insets...
-            min_y = base_rect.min_y - in_half_thickness
+            min_y = base_rect.min_y - in_dado_thickness
             max_y = min_y + in_thickness
             min_x = base_rect.max_x - in_thickness
             max_x = min_x + in_thickness
-            all_z = base_rect.max_z + in_half_thickness
+            all_z = base_rect.max_z + in_dado_thickness
             cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(min_x, min_y, all_z),
                                           Geom::Point3d.new(min_x, max_y, all_z),
                                           Geom::Point3d.new(max_x, max_y, all_z),
@@ -192,9 +199,9 @@ module AdamExtensions
 
         def self.update
             return unless self._cube_map&.valid?
-            self.create_bottom_panel(self._cube_map, 12)
-            self.create_left_right_panels(self._cube_map, 12)
-            self.create_front_back_panels(self._cube_map, 12)
+            self.create_bottom_panel(self._cube_map)
+            self.create_left_right_panels(self._cube_map)
+            self.create_front_back_panels(self._cube_map)
         end
 
         #-------------------------------------------------------------------------------
