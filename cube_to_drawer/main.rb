@@ -22,16 +22,30 @@ module AdamExtensions
             attr_accessor:_cube_map
             attr_accessor:_sheet_thickness
             attr_accessor:_dado_thickness
+            attr_accessor:_current_groups
         end
 
         self._units_type = "metric"
         self._cube_map = nil
         self._sheet_thickness = 18
         self._dado_thickness = 6
+        self._current_groups = []
 
-        def self.on_change_sheet_thickness(new_sheet_thickness)
-            return if new_sheet_thickness==self._sheet_thickness
+        def self.update_sheet_dado_values(new_sheet_value, new_dado_value)
+            valid_values = false
+            begin
+                new_sheet_thickness = Float(new_sheet_value)
+                new_dado_thickness = Float(new_dado_value)
+                valid_values = true
+            rescue
+                # Ignored
+            end
+            return unless valid_values
+            return if new_sheet_thickness==self._sheet_thickness && new_dado_thickness==self._dado_thickness
             self._sheet_thickness = new_sheet_thickness
+            self._dado_thickness = new_dado_thickness
+            self._current_groups.each {|g| g.erase! if g.respond_to?(:erase!)}
+            self._current_groups.clear
             self.update
         end
         # @param [CubeMap] facemap faces from selected cube
@@ -80,7 +94,7 @@ module AdamExtensions
 
             cut_rect.move(0, bottom_rect.depth, 0, "imperial")
             model.start_operation("Bottom Rear Rabbet", true)
-            Utils::cut_channel(model, bottom_group, cut_rect, bottom_rect.width+in_thickness, "x", "lt")
+            self._current_groups << Utils::cut_channel(model, bottom_group, cut_rect, bottom_rect.width+in_thickness, "x", "lt")
             model.commit_operation
         end #self.create_bottom_panel
 
@@ -131,11 +145,12 @@ module AdamExtensions
             cut_rect.move(0, move_y, 0, self._units_type)
             model.start_operation("Side Right Front Dado", true)
             right_side_group = Utils::cut_channel(model, right_side_group, cut_rect, side_rect.height+in_thickness)
+            self._current_groups << right_side_group
             model.commit_operation
 
             # create a copy .. move to left side .. rotate 180 degrees
             front_rect = face_map.to_rect_copy("front")
-            Utils::copy_move_rotate_group(right_side_group, -front_rect.width + in_thickness, 0, 0, "imperial", Z_AXIS, 180)
+            self._current_groups << Utils::copy_move_rotate_group(right_side_group, -front_rect.width + in_thickness, 0, 0, "imperial", Z_AXIS, 180)
         end # def self.create_side_panels
 
         # @param [Hash] face_map faces from selected cube
@@ -190,10 +205,11 @@ module AdamExtensions
             cut_rect.move(-base_rect.width + in_thickness, 0, 0, "imperial")
             model.start_operation("Slice Left Rabbet", true)
             front_group = Utils::cut_channel(model, front_group, cut_rect, base_rect.height + in_thickness)
+            self._current_groups << front_group
             model.commit_operation  # Create Front Panel
 
             side_rect = face_map.to_rect_copy("left")
-            Utils::copy_move_rotate_group(front_group, 0, side_rect.depth - in_thickness, 0, "imperial", Z_AXIS, 180)
+            self._current_groups << Utils::copy_move_rotate_group(front_group, 0, side_rect.depth - in_thickness, 0, "imperial", Z_AXIS, 180)
             model.commit_operation  # Slice Bottom Dado
         end # def self.create_side_front_back_panels
 
