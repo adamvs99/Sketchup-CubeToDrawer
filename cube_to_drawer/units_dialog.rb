@@ -15,9 +15,6 @@ module AdamExtensions
                 <html>
                     <head>
                       <script>
-                        sheet_thickness.addEventListener('input', function() {
-                            this.value = this.value.replace(/[^a-zA-Z\s]/g, '')
-                        });
                       </script>
                       <title>Cube to Drawer Parameters</title>
                       <style>
@@ -47,12 +44,22 @@ module AdamExtensions
                         </p>
                       </div>
                       <script>
-                        function sendDataToSketchUp() {
+                         function sendDataToSketchUp() {
                           var sheetValue = document.getElementById('sheet_thickness').value;
                           var dadoValue = document.getElementById('dado_width').value;
 
                           sketchup.updateUnitsDialogValues(sheetValue, dadoValue); // 'updateDialogValues' is a Ruby callback
                         }
+                        document.getElementById("sheet_thickness").addEventListener('keypress', function(event) {
+                            if (!/[0-9.]/.test(event.key)) {
+                                event.preventDefault(); // Prevent non-numeric characters
+                            }
+                        });
+                        document.getElementById("dado_width").addEventListener('keypress', function(event) {
+                            if (!/[0-9.]/.test(event.key)) {
+                                event.preventDefault(); // Prevent non-numeric characters
+                            }
+                        });
                         document.addEventListener('DOMContentLoaded', function() {
                           sketchup.dom_loaded(); 
                         });                     
