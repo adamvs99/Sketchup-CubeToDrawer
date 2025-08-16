@@ -14,8 +14,6 @@ module AdamExtensions
             <!DOCTYPE html>
                 <html>
                     <head>
-                      <script>
-                      </script>
                       <title>Cube to Drawer Parameters</title>
                       <style>
                         body { font-family: sans-serif; }
@@ -24,21 +22,34 @@ module AdamExtensions
                           text-align: center;
                           border: 3px solid green;
                         }
+                        .center_editable {
+                          text-align: center;
+                          width: 60px;
+                        }
+                        .unit_noneditable {
+                          text-align: left;
+                          width: 30px;
+                          border: none;
+                          color: darkblue;
+                          font-weight: bold;
+                        }
                       </style>
                     </head>
                     <body>
-                      <h3>Thickness of drawer panels</h3>
+                      <h3 style="text-align: center;">Cube to Drawer Parameters</h3>
                       <div class="center">
+                        <h3>Thickness of drawer panels</h3>
                         <p>
                             <label for="sheet_thickness">Sheet thickness:</label>
-                            <input type="text" id="sheet_thickness" name="sheet_thickness"
-                                    pattern="^[-+]?([0-9]*\.[0-9]+|[0-9]+\.?)([eE][-+]?[0-9]+)?$">
+                            <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness">
+                            <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units">
                         </p>
                         <p>
                            <label for="dado_width">Dado thickness:</label>
-                           <input type="text" id="dado_width" name="dado_width"
-                                   pattern="^[-+]?([0-9]*\.[0-9]+|[0-9]+\.?)([eE][-+]?[0-9]+)?$">
+                           <input class="center_editable" type="text" id="dado_width" name="dado_width" readonly="readonly">
+                           <input class="unit_noneditable" type="text" id="dado_units" name="dado_units" readonly="readonly">
                         </p>
+                        
                         <p>
                             <button onclick="sendDataToSketchUp()">Update</button>
                         </p>
@@ -88,8 +99,11 @@ module AdamExtensions
             dialog.add_action_callback("dom_loaded") do |action_context|
                 sheet_thickness = sprintf("%.2f", CubeToDrawer._sheet_thickness)
                 dado_width = sprintf("%.2f", CubeToDrawer._dado_thickness)
+                units = CubeToDrawer._units_type == "metric" ? "mm" : "in"
                 dialog.execute_script("document.getElementById('sheet_thickness').value = '#{sheet_thickness}';")
                 dialog.execute_script("document.getElementById('dado_width').value = '#{dado_width}';")
+                dialog.execute_script("document.getElementById('sheet_units').value = '#{units}';")
+                dialog.execute_script("document.getElementById('dado_units').value = '#{units}';")
             end
 
             dialog.set_position(300, 300) # Center the dialog on the screen
