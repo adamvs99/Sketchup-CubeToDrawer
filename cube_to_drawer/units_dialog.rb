@@ -14,6 +14,11 @@ module AdamExtensions
             <!DOCTYPE html>
                 <html>
                     <head>
+                      <script>
+                        sheet_thickness.addEventListener('input', function() {
+                            this.value = this.value.replace(/[^a-zA-Z\s]/g, '')
+                        });
+                      </script>
                       <title>Cube to Drawer Parameters</title>
                       <style>
                         body { font-family: sans-serif; }
@@ -33,8 +38,8 @@ module AdamExtensions
                                     pattern="^[-+]?([0-9]*\.[0-9]+|[0-9]+\.?)([eE][-+]?[0-9]+)?$">
                         </p>
                         <p>
-                           <label for="dado_thickness">Dado thickness:</label>
-                           <input type="text" id="dado_thickness" name="dado_thickness"
+                           <label for="dado_width">Dado thickness:</label>
+                           <input type="text" id="dado_width" name="dado_width"
                                    pattern="^[-+]?([0-9]*\.[0-9]+|[0-9]+\.?)([eE][-+]?[0-9]+)?$">
                         </p>
                         <p>
@@ -43,11 +48,14 @@ module AdamExtensions
                       </div>
                       <script>
                         function sendDataToSketchUp() {
-                           var sheetValue = document.getElementById('sheet_thickness').value;
-                           var dadoValue = document.getElementById('dado_thickness').value;
+                          var sheetValue = document.getElementById('sheet_thickness').value;
+                          var dadoValue = document.getElementById('dado_width').value;
 
-                           sketchup.updateUnitsDialogValues(sheetValue, dadoValue); // 'updateDialogValues' is a Ruby callback
+                          sketchup.updateUnitsDialogValues(sheetValue, dadoValue); // 'updateDialogValues' is a Ruby callback
                         }
+                        document.addEventListener('DOMContentLoaded', function() {
+                          sketchup.dom_loaded(); 
+                        });                     
                       </script>
                     </body>
                 </html>
@@ -57,7 +65,8 @@ module AdamExtensions
                 :dialog_title => "My Modeless Dialog",
                 :preferences_key => "units_dialog.dialog", # Unique key for persistence
                 :style => UI::HtmlDialog::STYLE_UTILITY, #  For a standard dialog appearance
-                :width => 400,
+                :resizable => false,
+                :width => 350,
                 :height => 400
             }
 
@@ -69,8 +78,16 @@ module AdamExtensions
                 CubeToDrawer.update_sheet_dado_values(sheet_value, dado_value)
             end
 
-            dialog.center # Center the dialog on the screen
+            dialog.add_action_callback("dom_loaded") do |action_context|
+                sheet_thickness = sprintf("%.2f", CubeToDrawer._sheet_thickness)
+                dado_width = sprintf("%.2f", CubeToDrawer._dado_thickness)
+                dialog.execute_script("document.getElementById('sheet_thickness').value = '#{sheet_thickness}';")
+                dialog.execute_script("document.getElementById('dado_width').value = '#{dado_width}';")
+            end
+
+            dialog.set_position(300, 300) # Center the dialog on the screen
             dialog.show # Display the dialog
+            # Ruby callback that JavaScript can trigger
         end # def self.show
     end # module UnitsDialog
 end # module AdamExtensions
