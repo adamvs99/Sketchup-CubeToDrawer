@@ -41,22 +41,22 @@ module AdamExtensions
                         <h3>Thickness of drawer panels</h3>
                         <p>
                             <label for="sheet_thickness">Sheet thickness:</label>
-                            <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness">
-                            <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units">
+                            <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness" tabindex="1">
+                            <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units" tabindex="-1">
                         </p>
                         <p>
                            <label for="dado_width">Dado thickness:</label>
-                           <input class="center_editable" type="text" id="dado_width" name="dado_width" readonly="readonly">
-                           <input class="unit_noneditable" type="text" id="dado_width_units" name="dado_width_units" readonly="readonly">
+                           <input class="center_editable" type="text" id="dado_width" name="dado_width" readonly="readonly" tabindex="2">
+                           <input class="unit_noneditable" type="text" id="dado_width_units" name="dado_width_units" readonly="readonly" tabindex="-1">
                         </p>
                          <p>
                            <label for="dado_depth">Dado depth:</label>
-                           <input class="center_editable" type="text" id="dado_depth" name="dado_depth" readonly="readonly">
-                           <input class="unit_noneditable" type="text" id="dado_depth_units" name="dado_depth_units" readonly="readonly">
+                           <input class="center_editable" type="text" id="dado_depth" name="dado_depth" readonly="readonly" tabindex="3">
+                           <input class="unit_noneditable" type="text" id="dado_depth_units" name="dado_depth_units" readonly="readonly" tabindex="-1">
                         </p>
                        
                         <p>
-                            <button onclick="sendDataToSketchUp()">Update</button>
+                            <button onclick="sendDataToSketchUp()" tabindex="0">Update</button>
                         </p>
                       </div>
                       <script>
