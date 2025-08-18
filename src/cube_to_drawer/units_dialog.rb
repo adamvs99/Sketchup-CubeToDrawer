@@ -40,19 +40,24 @@ module AdamExtensions
                       <div class="center">
                         <h3>Thickness of drawer panels</h3>
                         <p>
-                            <label for="sheet_thickness">Sheet thickness:</label>
+                            <label for="sheet_thickness">Sheet Thickness:</label>
                             <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness" tabindex="1">
-                            <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units" tabindex="-1">
+                            <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units" readonly="readonly" tabindex="-1">
                         </p>
                         <p>
-                           <label for="dado_width">Dado thickness:</label>
-                           <input class="center_editable" type="text" id="dado_width" name="dado_width" readonly="readonly" tabindex="2">
+                           <label for="dado_width">Dado Thickness:</label>
+                           <input class="center_editable" type="text" id="dado_width" name="dado_width" tabindex="2">
                            <input class="unit_noneditable" type="text" id="dado_width_units" name="dado_width_units" readonly="readonly" tabindex="-1">
                         </p>
                          <p>
-                           <label for="dado_depth">Dado depth:</label>
-                           <input class="center_editable" type="text" id="dado_depth" name="dado_depth" readonly="readonly" tabindex="3">
+                           <label for="dado_depth">Dado Depth:</label>
+                           <input class="center_editable" type="text" id="dado_depth" name="dado_depth" tabindex="3">
                            <input class="unit_noneditable" type="text" id="dado_depth_units" name="dado_depth_units" readonly="readonly" tabindex="-1">
+                        </p>
+                        
+                         <p>
+                           <label for="hidden_dado">Hidden Dado:</label>
+                           <input class="center_editable" type="checkbox" id="hidden_dado" name="hidden_dado" value="hidden_dado" tabindex="4">
                         </p>
                        
                         <p>
@@ -77,6 +82,14 @@ module AdamExtensions
                                 event.preventDefault(); // Prevent non-numeric characters
                             }
                         });
+                        document.getElementById("dado_depth").addEventListener('keypress', function(event) {
+                            if (!/[0-9.]/.test(event.key)) {
+                                event.preventDefault(); // Prevent non-numeric characters
+                            }
+                        });
+                        document.getElementById("hidden_dado").addEventListener('change', function() {
+                            sketchup.updateHiddenDado(this.checked)
+                        });
                         document.addEventListener('DOMContentLoaded', function() {
                           sketchup.dom_loaded(); 
                         });                     
@@ -86,16 +99,17 @@ module AdamExtensions
             HTML
 
             options = {
-                :dialog_title => "My Modeless Dialog",
+                :dialog_title => "Drawer Parameters",
                 :preferences_key => "units_dialog.dialog", # Unique key for persistence
                 :style => UI::HtmlDialog::STYLE_UTILITY, #  For a standard dialog appearance
-                :resizable => false,
-                :width => 350,
-                :height => 460
+                #:width => 320,
+                #:height => 510,
+                :resizable => false
             }
 
             dialog = UI::HtmlDialog.new(options)
             dialog.set_html(html)
+            dialog.set_size(320, 380)
 
             # Ruby callback that JavaScript can trigger
             dialog.add_action_callback("updateUnitsDialogValues") do |action_context, sheet_thickness, dado_width, dado_depth|
@@ -122,6 +136,10 @@ module AdamExtensions
                     #
                 end
                 CubeToDrawer.update_sheet_dado_values(sheet_thickness, dado_width, dado_depth)
+            end
+
+            dialog.add_action_callback("updateHiddenDado") do |action_context, hidden_dado_checked|
+                CubeToDrawer.update_hidden_dado(hidden_dado_checked)
             end
 
             dialog.add_action_callback("dom_loaded") do |action_context|
