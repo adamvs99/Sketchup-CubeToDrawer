@@ -97,7 +97,8 @@ module AdamExtensions
             return unless face_map&.valid?
             model = Sketchup.active_model
             bottom_rect = face_map.to_rect_copy("bottom", 0, 0, self._sheet_thickness)
-            bottom_rect.expand(-self._dado_thickness, -self._dado_thickness, 0)
+            bottom_upper_shrink = self._dado_thickness-self._sheet_thickness
+            bottom_rect.expand(bottom_upper_shrink, bottom_upper_shrink, 0)
 
             model.start_operation("Create Drawer Bottom Group", true)
             bottom_group = model.entities.add_group
@@ -107,16 +108,10 @@ module AdamExtensions
             model.commit_operation
 
             # cut left right rabbets
-            min_x = bottom_rect.max_x - self._dado_thickness
-            max_x = bottom_rect.max_x + self._dado_thickness
-            min_z = bottom_rect.min_z - self._sheet_thickness - self._dado_thickness
-            max_z = bottom_rect.max_z - self._dado_thickness
-            all_y = bottom_rect.min_y - self._dado_thickness
-            # points going clockwise on the X, Z plane...
-            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(min_x, all_y, min_z),
-                                                 Geom::Point3d.new(min_x, all_y, max_z),
-                                                 Geom::Point3d.new(max_x, all_y, max_z),
-                                                 Geom::Point3d.new(max_x, all_y, min_z)])
+            origin = Geom::Point3d.new(bottom_rect.max_x - self._dado_depth,
+                                       bottom_rect.min_y - self._dado_thickness,
+                                       bottom_rect.min_z - self._dado_thickness - self._sheet_thickness)
+            cut_rect = GeoUtil::WDHRect.new(origin, self._dado_depth * 2, 0, self._sheet_thickness)
             model.start_operation("Bottom Right Rabbet", true)
             bottom_group = Utils.cut_channel(model, bottom_group, cut_rect, bottom_rect.depth+self._sheet_thickness, "y", "lt")
             model.commit_operation
