@@ -224,6 +224,50 @@ module AdamExtensions
             end
         end # class Rect
 
+        #----------------------------------------------------------------------------------------------------------------------
+        # WHRect - Rect but constructor using origin, width, height, plane as inputs
+        # Note: all units are in imperial (decimal inch)
+        #----------------------------------------------------------------------------------------------------------------------
+        class WDHRect < Rect
+            def initialize(origin, width, depth, height)
+                # Note: units are imperial
+                if width < 0
+                    origin.x += width
+                    width = width.abs
+                end
+                if depth < 0
+                    origin.y += depth
+                    depth = depth.abs
+                end
+                if height < 0
+                    origin.z += height
+                    height = height.abs
+                end
+                if height==0 # "xy" plane
+                    # origin is the near, left corner
+                    pts = [Geom::Point3d.new(origin.x, origin.y, origin.z),
+                           Geom::Point3d.new(origin.x, origin.y+depth, origin.z),
+                           Geom::Point3d.new(origin.x+width, origin.y+depth, origin.z),
+                           Geom::Point3d.new(origin.x+width, origin.y, origin.z)]
+                elsif depth==0 # "xz" plane
+                    # origin is the near, left corner
+                    pts = [Geom::Point3d.new(origin.x, origin.y, origin.z),
+                           Geom::Point3d.new(origin.x, origin.y, origin.z+height),
+                           Geom::Point3d.new(origin.x+width, origin.y, origin.z+height),
+                           Geom::Point3d.new(origin.x+width, origin.y, origin.z)]
+                elsif width==0# "yz" plane
+                    # origin is the near, left corner
+                    pts = [Geom::Point3d.new(origin.x, origin.y, origin.z),
+                           Geom::Point3d.new(origin.x, origin.y, origin.z+height),
+                           Geom::Point3d.new(origin.x, origin.y+depth, origin.z+height),
+                           Geom::Point3d.new(origin.x, origin.y+depth, origin.z)]
+                else
+                    pts = []
+                end
+                super(pts)
+            end
+
+        end
     end # module GeoUtil
 end # module AdamExtensions
 
