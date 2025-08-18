@@ -47,19 +47,25 @@ module AdamExtensions
                         <p>
                            <label for="dado_width">Dado thickness:</label>
                            <input class="center_editable" type="text" id="dado_width" name="dado_width" readonly="readonly">
-                           <input class="unit_noneditable" type="text" id="dado_units" name="dado_units" readonly="readonly">
+                           <input class="unit_noneditable" type="text" id="dado_width_units" name="dado_width_units" readonly="readonly">
                         </p>
-                        
+                         <p>
+                           <label for="dado_depth">Dado depth:</label>
+                           <input class="center_editable" type="text" id="dado_depth" name="dado_depth" readonly="readonly">
+                           <input class="unit_noneditable" type="text" id="dado_depth_units" name="dado_depth_units" readonly="readonly">
+                        </p>
+                       
                         <p>
                             <button onclick="sendDataToSketchUp()">Update</button>
                         </p>
                       </div>
                       <script>
                          function sendDataToSketchUp() {
-                          var sheetValue = document.getElementById('sheet_thickness').value;
-                          var dadoValue = document.getElementById('dado_width').value;
+                          var sheetThickness = document.getElementById('sheet_thickness').value;
+                          var dadoWidth = document.getElementById('dado_width').value;
+                          var dadoDepth = document.getElementById('dado_depth').value;
 
-                          sketchup.updateUnitsDialogValues(sheetValue, dadoValue); // 'updateDialogValues' is a Ruby callback
+                          sketchup.updateUnitsDialogValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
                         }
                         document.getElementById("sheet_thickness").addEventListener('keypress', function(event) {
                             if (!/[0-9.]/.test(event.key)) {
@@ -85,25 +91,66 @@ module AdamExtensions
                 :style => UI::HtmlDialog::STYLE_UTILITY, #  For a standard dialog appearance
                 :resizable => false,
                 :width => 350,
-                :height => 400
+                :height => 460
             }
 
             dialog = UI::HtmlDialog.new(options)
             dialog.set_html(html)
 
             # Ruby callback that JavaScript can trigger
-            dialog.add_action_callback("updateUnitsDialogValues") do |action_context, sheet_value, dado_value|
-                CubeToDrawer.update_sheet_dado_values(sheet_value, dado_value)
+            dialog.add_action_callback("updateUnitsDialogValues") do |action_context, sheet_thickness, dado_width, dado_depth|
+                valid_values = false
+                begin
+                    sheet_thickness = Float(sheet_thickness)
+                    dado_width = Float(dado_width)
+                    dado_depth = Float(dado_depth)
+                    valid_values = true
+                rescue
+                    # TODO add handler
+                end
+                # need to convert back to "imperial" units
+                case CubeToDrawer._units_type
+                when "metric"
+                    sheet_thickness = Utils.in_unit(sheet_thickness)
+                    dado_width = Utils.in_unit(dado_width)
+                    dado_depth = Utils.in_unit(dado_depth)
+                when "cm_metric"
+                    sheet_thickness = Utils.in_unit(sheet_thickness)
+                    dado_width = Utils.in_unit(dado_width)
+                    dado_depth = Utils.in_unit(dado_depth)
+                else
+                    #
+                end
+                CubeToDrawer.update_sheet_dado_values(sheet_thickness, dado_width, dado_depth)
             end
 
             dialog.add_action_callback("dom_loaded") do |action_context|
-                sheet_thickness = sprintf("%.2f", CubeToDrawer._sheet_thickness)
-                dado_width = sprintf("%.2f", CubeToDrawer._dado_thickness)
-                units = CubeToDrawer._units_type == "metric" ? "mm" : "in"
+                # Note: internal unit type is always "imperial"
+                case CubeToDrawer._units_type
+                when "imperial"
+                    units = "in"
+                    sheet_thickness = sprintf("%.2f", CubeToDrawer._sheet_thickness)
+                    dado_width = sprintf("%.2f", CubeToDrawer._dado_thickness)
+                    dado_depth = sprintf("%.2f", CubeToDrawer._dado_depth)
+                when "metric"
+                    units = "mm"
+                    sheet_thickness = sprintf("%.2f", Utils.mm_unit(CubeToDrawer._sheet_thickness, "imperial"))
+                    dado_width = sprintf("%.2f", Utils.mm_unit(CubeToDrawer._dado_thickness, "imperial"))
+                    dado_depth = sprintf("%.2f", Utils.mm_unit(CubeToDrawer._dado_depth, "imperial"))
+                when "cm_metric"
+                    units = "mm"
+                    sheet_thickness = sprintf("%.2f", Utils.cm_unit(CubeToDrawer._sheet_thickness, "imperial"))
+                    dado_width = sprintf("%.2f", Utils.cm_unit(CubeToDrawer._dado_thickness, "imperial"))
+                    dado_depth = sprintf("%.2f", Utils.cm_unit(CubeToDrawer._dado_depth, "imperial"))
+                else
+                    #
+                end
                 dialog.execute_script("document.getElementById('sheet_thickness').value = '#{sheet_thickness}';")
                 dialog.execute_script("document.getElementById('dado_width').value = '#{dado_width}';")
+                dialog.execute_script("document.getElementById('dado_depth').value = '#{dado_depth}';")
                 dialog.execute_script("document.getElementById('sheet_units').value = '#{units}';")
-                dialog.execute_script("document.getElementById('dado_units').value = '#{units}';")
+                dialog.execute_script("document.getElementById('dado_width_units').value = '#{units}';")
+                dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
             end
 
             dialog.set_position(300, 300) # Center the dialog on the screen
