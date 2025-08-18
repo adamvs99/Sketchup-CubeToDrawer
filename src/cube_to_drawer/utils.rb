@@ -11,12 +11,18 @@ module AdamExtensions
 
     module Utils
         def self.in_unit(num, units_type = "metric")
-            return num if num==0 || units_type != "metric"
-            num / 25.4
+            return num if num==0 || units_type == "imperial"
+            units_type == "metric" ? num / 25.4 : num / 2.54
         end
+
         def self.mm_unit(num, units_type = "imperial")
-            return num if num==0 || units_type != "imperial"
+            return num if num==0 || units_type == "metric"
             num * 25.4
+        end
+
+        def self.cm_unit(num, units_type = "imperial")
+            return num if num==0 || units_type == "cm_metric"
+            num * 2.54
         end
 
         def self.cut_channel(model, target_group, cut_rect, cut_length, plane = "z", direction = "gt")
