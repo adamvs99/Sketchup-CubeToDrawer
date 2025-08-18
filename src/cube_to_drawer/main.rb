@@ -18,7 +18,7 @@ module AdamExtensions
     module CubeToDrawer
 
         class << self
-            attr_accessor :_units_type, :_cube_map, :_sheet_thickness, :_dado_thickness, :_dado_depth, :_current_groups
+            attr_accessor :_units_type, :_cube_map, :_sheet_thickness, :_dado_thickness, :_dado_depth, :_current_groups, :_hidden_dado
         end
 
         self._units_type = "metric"
@@ -27,6 +27,7 @@ module AdamExtensions
         self._dado_thickness = 6/25.4
         self._dado_depth = 6/25.4
         self._current_groups = []
+        self._hidden_dado = true
 
         def self.set_units_type
             model = Sketchup.active_model
@@ -76,12 +77,15 @@ module AdamExtensions
             end
         end
 
+        def self.update_hidden_dado(hide_dados)
+            self._hidden_dado = hide_dados
+            self.update
+        end
         def self.update_sheet_dado_values(new_sheet_thickness, new_dado_thickness, new_dado_depth)
             return if new_sheet_thickness==self._sheet_thickness && new_dado_thickness==self._dado_thickness && new_dado_depth==self._dado_depth
             self._sheet_thickness = new_sheet_thickness
             self._dado_thickness = new_dado_thickness
-            self._current_groups.each {|g| g.erase! if g.respond_to?(:erase!)}
-            self._current_groups.clear
+            self._dado_depth = new_dado_depth
             self.update
         end
 
@@ -245,6 +249,8 @@ module AdamExtensions
 
         def self.update
             return unless self._cube_map&.valid?
+            self._current_groups.each {|g| g.erase! if g.respond_to?(:erase!)}
+            self._current_groups.clear
             self.create_bottom_panel(self._cube_map)
             self.create_left_right_panels(self._cube_map)
             self.create_front_back_panels(self._cube_map)
