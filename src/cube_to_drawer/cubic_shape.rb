@@ -14,6 +14,7 @@ module AdamExtensions
     module CubicShape
         #----------------------------------------------------------------------------------------------------------------------
         # CubeMap - encapsulates data on a 3d 'cube' into a Hash "top", "bottom", "left", "right, "front", "back"
+        # Note: all units are in imperial (decimal inch)
         #----------------------------------------------------------------------------------------------------------------------
         class CubeMap
             def initialize(group, action="")
@@ -86,10 +87,10 @@ module AdamExtensions
                 @_cube_map[which_face][:face_points]
             end # face_points
 
-            def to_rect_copy(which_face, x=0, y=0, z=0, units_type="metric")
+            def to_rect_copy(which_face, x=0, y=0, z=0)
                 rect = GeoUtil::Rect.new(face_points(which_face))
                 return rect if rect.empty?
-                rect.copy(x, y, z, units_type)
+                rect.copy(x, y, z)
             end
         end # class CubeMap
     end # module LoadTest

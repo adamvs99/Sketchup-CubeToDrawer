@@ -12,7 +12,8 @@ module AdamExtensions
 
     module GeoUtil
         #----------------------------------------------------------------------------------------------------------------------
-        # Rect - encapsultes operations on a 'rectangle'
+        # Rect - encapsulates operations on a 'rectangle'
+        # Note: all units are in imperial (decimal inch)
         #----------------------------------------------------------------------------------------------------------------------
         class Rect
             def initialize(corners)
@@ -152,30 +153,24 @@ module AdamExtensions
                 self
             end
 
-            def move(x=0, y=0, z=0, units_type="metric")
+            def move(x=0, y=0, z=0)
                 return if x==0 && y==0 && z==0
-                x = Utils::in_unit(x, units_type)
-                y = Utils::in_unit(y, units_type)
-                z = Utils::in_unit(z, units_type)
                 @points.each {|pt| pt.x += x; pt.y += y; pt.z += z}
                 self
             end
 
-            def copy(x=0, y=0, z=0, units_type="metric")
+            def copy(x=0, y=0, z=0)
                 new_rect = Rect.new(@points)
-                new_rect.move(x, y, z, units_type)
+                new_rect.move(x, y, z)
                 new_rect
             end
 
-            def expand(x=0, y=0, z=0, units_type="metric")
+            def expand(x=0, y=0, z=0)
                 return self if x==0 && y==0 && z==0
                 return self if @points.empty?
                 minx = min_x; maxx = max_x
                 miny = min_y; maxy = max_y
                 minz = min_z; maxz = max_z
-                x = Utils::in_unit(x, units_type)
-                y = Utils::in_unit(y, units_type)
-                z = Utils::in_unit(z, units_type)
                 @points.each do |pt|
                     if pt.x==maxx
                         pt.x += x
@@ -196,9 +191,8 @@ module AdamExtensions
                 self
             end # def expand
 
-            def change_edge(edge, amount, units_type="metric")
+            def change_edge(edge, amount)
                 return unless amount!=0
-                amount = Utils::in_unit(amount, units_type)
                 case edge
                 when "bottom"
                     return unless ["xz", "yz"].include? orientation
