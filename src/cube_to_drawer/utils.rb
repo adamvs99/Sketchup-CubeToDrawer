@@ -10,21 +10,39 @@ require 'sketchup.rb'
 module AdamExtensions
 
     module Utils
+        # @param [Numeric] number to be converted
+        # @param [String] units type of the number to be converted
+        #                 if already in the target type nothing is
+        #                 done
         def self.in_unit(num, units_type = "metric")
             return num if num==0 || units_type == "imperial"
             units_type == "metric" ? num / 25.4 : num / 2.54
         end
 
+        # @param [Numeric] number to be converted
+        # @param [String] units type of the number to be converted
+        #                 if already in the target type nothing is
+        #                 done
         def self.mm_unit(num, units_type = "imperial")
             return num if num==0 || units_type == "metric"
             num * 25.4
         end
 
+        # @param [Numeric] number to be converted
+        # @param [String] units type of the number to be converted
+        #                 if already in the target type nothing is
+        #                 done
         def self.cm_unit(num, units_type = "imperial")
             return num if num==0 || units_type == "cm_metric"
             num * 2.54
         end
 
+        # @param [Sketchup::Model] current sketchup model
+        # @param [Sketchup::Group] group to be re-shaped by the 'cut'
+        # @param [GeoUtil::Rect] rectangle to extrude as the cut shape
+        # @param [Numeric] length of the extrusion
+        # @param [String] plane of the face to extrude from
+        # @param [String] direction from the extrusion plane
         def self.cut_channel(model, target_group, cut_rect, cut_length, plane = "z", direction = "gt")
             cut_group = model.entities.add_group
             cut_face = cut_group.entities.add_face(cut_rect.points)
@@ -42,13 +60,17 @@ module AdamExtensions
             cut_face.pushpull(cut_length)
             cut_group.subtract(target_group)
         end
-        def self.copy_move_rotate_group(source_group, x, y, z, units_type, axis, angle)
+
+        # @param [Sketchup::Group] group to be copied, moved, rotated
+        # @param [Numeric] 'x' direction of move'
+        # @param [Numeric] 'y' direction of move'
+        # @param [Numeric] 'z' direction of move'
+        # @param [Sketchup::CONSTANT] axis to rotate on, e.g., 'Z_AXIS'
+        # @param [Numeric] rotation amount in degrees
+        def self.copy_move_rotate_group(source_group, x, y, z, axis, angle)
             new_group = source_group.copy
             model = Sketchup.active_model
             model.start_operation("Copy Move Rotate", true)
-            x = self.in_unit(x, units_type)
-            y = self.in_unit(y, units_type)
-            z = self.in_unit(z, units_type)
             unless x==0 && y==0 && z==0
                 move_params = Geom::Transformation.new(Geom::Point3d.new(x, y, z))
                 new_group.transform!(move_params)

@@ -225,10 +225,15 @@ module AdamExtensions
         end # class Rect
 
         #----------------------------------------------------------------------------------------------------------------------
-        # WHRect - Rect but constructor using origin, width, height, plane as inputs
+        # WHRect - Rect but constructed using origin, width, height, plane as inputs
         # Note: all units are in imperial (decimal inch)
         #----------------------------------------------------------------------------------------------------------------------
         class WDHRect < Rect
+            # @param [Sketchup::Geom::Point3d] origin point of the rectangle
+            #                                  this is the lower left point
+            # @param [Numeric] 'x' length
+            # @param [Numeric] 'y' length
+            # @param [Numeric] 'z' length
             def initialize(origin, width, depth, height)
                 # Note: units are imperial
                 if width < 0

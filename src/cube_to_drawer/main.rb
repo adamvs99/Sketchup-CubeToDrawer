@@ -77,10 +77,13 @@ module AdamExtensions
             end
         end
 
+        # @param [hide_dados] boolean to hide or not to hide the dados
+        # called from settings panel - triggers an update
         def self.update_hidden_dado(hide_dados)
             self._hidden_dado = hide_dados
             self.update
         end
+        # called from settting panel - triggers an update
         def self.update_sheet_dado_values(new_sheet_thickness, new_dado_thickness, new_dado_depth)
             return if new_sheet_thickness==self._sheet_thickness && new_dado_thickness==self._dado_thickness && new_dado_depth==self._dado_depth
             self._sheet_thickness = new_sheet_thickness
@@ -97,7 +100,7 @@ module AdamExtensions
             return unless face_map&.valid?
             model = Sketchup.active_model
             bottom_rect = face_map.to_rect_copy("bottom", 0, 0, self._sheet_thickness)
-            bottom_upper_shrink = self._dado_thickness-self._sheet_thickness
+            bottom_upper_shrink = self._dado_depth-self._sheet_thickness
             bottom_rect.expand(bottom_upper_shrink, bottom_upper_shrink, 0)
 
             model.start_operation("Create Drawer Bottom Group", true)
@@ -107,9 +110,9 @@ module AdamExtensions
             bottom_face.pushpull(self._sheet_thickness)
             model.commit_operation
 
-            # cut left right rabbets
+            # cut left right rabbets ...
             origin = Geom::Point3d.new(bottom_rect.max_x - self._dado_depth,
-                                       bottom_rect.min_y - self._dado_thickness,
+                                       bottom_rect.min_y - self._dado_depth,
                                        bottom_rect.min_z - self._dado_thickness - self._sheet_thickness)
             cut_rect = GeoUtil::WDHRect.new(origin, self._dado_depth * 2, 0, self._sheet_thickness)
             model.start_operation("Bottom Right Rabbet", true)
@@ -121,7 +124,9 @@ module AdamExtensions
             bottom_group = Utils.cut_channel(model, bottom_group, cut_rect, bottom_rect.depth+self._sheet_thickness, "y", "lt")
             model.commit_operation
 
+            # cut fron and back rabbets..
             cut_rect.flip("yz")
+            cut_rect.move(self._dado_depth * 2, 0, 0)
             model.start_operation("Bottom Front Rabbet", true)
             bottom_group = Utils.cut_channel(model, bottom_group, cut_rect, bottom_rect.width+self._sheet_thickness, "x", "lt")
             model.commit_operation
@@ -177,7 +182,7 @@ module AdamExtensions
 
             # create a copy .. move to left side .. rotate 180 degrees
             front_rect = face_map.to_rect_copy("front")
-            self._current_groups << Utils.copy_move_rotate_group(right_side_group, -front_rect.width + self._sheet_thickness, 0, 0, "imperial", Z_AXIS, 180)
+            self._current_groups << Utils.copy_move_rotate_group(right_side_group, -front_rect.width + self._sheet_thickness, 0, 0, Z_AXIS, 180)
         end # def self.create_side_panels
 
         # @param [Hash] face_map faces from selected cube
@@ -200,7 +205,7 @@ module AdamExtensions
             model.start_operation("Slice Bottom Dado", true)
             # cut the bottom dado
             origin = Geom::Point3d.new(base_rect.max_x,
-                                       base_rect.min_y + self._sheet_thickness - self._dado_thickness,
+                                       base_rect.min_y + self._sheet_thickness - self._dado_depth,
                                        base_rect.min_z + self._sheet_thickness - self._dado_thickness)
             cut_rect = GeoUtil::WDHRect.new(origin, 0, self._dado_depth * 2, self._dado_thickness)
             cut_length = base_rect.width + self._sheet_thickness
@@ -223,7 +228,7 @@ module AdamExtensions
             model.commit_operation  # Create Front Panel
 
             side_rect = face_map.to_rect_copy("left")
-            self._current_groups << Utils.copy_move_rotate_group(front_group, 0, side_rect.depth - self._sheet_thickness, 0, "imperial", Z_AXIS, 180)
+            self._current_groups << Utils.copy_move_rotate_group(front_group, 0, side_rect.depth - self._sheet_thickness, 0, Z_AXIS, 180)
             model.commit_operation  # Slice Bottom Dado
         end # def self.create_side_front_back_panels
 
