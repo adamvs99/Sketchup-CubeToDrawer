@@ -150,32 +150,28 @@ module AdamExtensions
             model.commit_operation
 
             # cut the bottom dado
-            min_x = side_rect.min_x - self._sheet_thickness - self._dado_thickness
-            max_x = side_rect.min_x - self._sheet_thickness + self._dado_thickness
-            min_z = side_rect.min_z + self._sheet_thickness - self._dado_thickness
-            max_z = side_rect.min_z + self._sheet_thickness
-            all_y = side_rect.min_y - self._dado_thickness
-            # points going clockwise on the X, Z plane...
-            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(max_x, all_y, min_z),
-                                          Geom::Point3d.new(min_x, all_y, min_z),
-                                          Geom::Point3d.new(min_x, all_y, max_z),
-                                          Geom::Point3d.new(max_x, all_y, max_z)])
+            origin = Geom::Point3d.new(side_rect.min_x - self._sheet_thickness - self._dado_depth,
+                                       side_rect.min_y - self._dado_thickness,
+                                       side_rect.min_z + self._sheet_thickness - self._dado_thickness)
+            cut_rect = GeoUtil::WDHRect.new(origin, self._dado_depth * 2, 0, self._dado_thickness)
+            cut_length = side_rect.depth+self._sheet_thickness
             # cut bottom dado
             model.start_operation("Side Right Bottom Dado", true)
-            right_side_group = Utils.cut_channel(model, right_side_group, cut_rect, side_rect.depth+self._sheet_thickness, "y", "lt")
+            right_side_group = Utils.cut_channel(model, right_side_group, cut_rect, cut_length, "y", "lt")
             model.commit_operation
 
             # cut the dado for the front piece
             cut_rect.move(0, self._sheet_thickness, side_rect.height)
             cut_rect.flip("xy")
+            cut_length = side_rect.height+self._sheet_thickness
             model.start_operation("Side Right Rear Dado", true)
-            right_side_group = Utils.cut_channel(model, right_side_group, cut_rect, side_rect.height+self._sheet_thickness)
+            right_side_group = Utils.cut_channel(model, right_side_group, cut_rect, cut_length)
             model.commit_operation
 
             # cut the dado for the front piece
             cut_rect.move(0, side_rect.depth - self._sheet_thickness * 2 + self._dado_thickness, 0)
             model.start_operation("Side Right Front Dado", true)
-            right_side_group = Utils.cut_channel(model, right_side_group, cut_rect, side_rect.height+self._sheet_thickness)
+            right_side_group = Utils.cut_channel(model, right_side_group, cut_rect, cut_length)
             self._current_groups << right_side_group
             model.commit_operation
 
@@ -194,7 +190,7 @@ module AdamExtensions
 
             model.start_operation("Create Front Panel", true)
             front_rect = base_rect.copy()
-            front_rect.expand(-self._sheet_thickness+self._dado_thickness, 0, 0)
+            front_rect.expand(-self._sheet_thickness + self._dado_depth, 0, 0)
             front_group = model.entities.add_group
             front_face = front_group.entities.add_face(front_rect.points)
             front_face.reverse! if front_face.normal.y < 0
@@ -203,35 +199,24 @@ module AdamExtensions
 
             model.start_operation("Slice Bottom Dado", true)
             # cut the bottom dado
-            min_y = base_rect.min_y + self._sheet_thickness - self._dado_thickness
-            max_y = min_y + self._dado_thickness * 2
-            min_z = base_rect.min_z + self._sheet_thickness - self._dado_thickness
-            max_z = base_rect.min_z + self._sheet_thickness
-            all_x = base_rect.max_x
-
-            #create the bottom groove...
-            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(all_x, min_y, min_z),
-                                          Geom::Point3d.new(all_x, min_y, max_z),
-                                          Geom::Point3d.new(all_x, max_y, max_z),
-                                          Geom::Point3d.new(all_x, max_y, min_z)])
-            front_group = Utils.cut_channel(model, front_group, cut_rect, base_rect.width, "x")
+            origin = Geom::Point3d.new(base_rect.max_x,
+                                       base_rect.min_y + self._sheet_thickness - self._dado_thickness,
+                                       base_rect.min_z + self._sheet_thickness - self._dado_thickness)
+            cut_rect = GeoUtil::WDHRect.new(origin, 0, self._dado_depth * 2, self._dado_thickness)
+            cut_length = base_rect.width + self._sheet_thickness
+            front_group = Utils.cut_channel(model, front_group, cut_rect, cut_length, "x")
             model.commit_operation  # Create Front Panel
 
-            # create the left and right insets...
-            min_y = base_rect.min_y - self._dado_thickness
-            max_y = min_y + self._sheet_thickness
-            min_x = base_rect.max_x - self._sheet_thickness
-            max_x = min_x + self._sheet_thickness
-            all_z = base_rect.max_z + self._dado_thickness
-            cut_rect = GeoUtil::Rect.new([Geom::Point3d.new(min_x, min_y, all_z),
-                                          Geom::Point3d.new(min_x, max_y, all_z),
-                                          Geom::Point3d.new(max_x, max_y, all_z),
-                                          Geom::Point3d.new(max_x, min_y, all_z)])
+            origin = Geom::Point3d.new(front_rect.max_x - self._dado_depth,
+                                       front_rect.min_y - self._dado_thickness,
+                                       front_rect.max_z + self._dado_thickness)
+            cut_rect = GeoUtil::WDHRect.new(origin, self._dado_depth * 2, self._sheet_thickness, 0)
+            cut_length = base_rect.height + self._sheet_thickness
             model.start_operation("Slice Right Rabbet", true)
-            front_group = Utils.cut_channel(model, front_group, cut_rect, base_rect.height + self._sheet_thickness)
+            front_group = Utils.cut_channel(model, front_group, cut_rect, cut_length)
             model.commit_operation  # Create Front Panel
 
-            cut_rect.move(-base_rect.width + self._sheet_thickness, 0, 0)
+            cut_rect.move(-front_rect.width, 0, 0)
             model.start_operation("Slice Left Rabbet", true)
             front_group = Utils.cut_channel(model, front_group, cut_rect, base_rect.height + self._sheet_thickness)
             self._current_groups << front_group
