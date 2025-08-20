@@ -33,6 +33,15 @@ module AdamExtensions
                           color: darkblue;
                           font-weight: bold;
                         }
+                        .images {
+                          vertical-align: middle;
+                          horiz-align: center;
+                          height: 100%;
+                          margin: 0 auto;
+                          width: 100%;
+                          position: relative;
+                        }
+                        img { display: none; }
                       </style>
                     </head>
                     <body>
@@ -64,6 +73,11 @@ module AdamExtensions
                             <button onclick="sendDataToSketchUp()" tabindex="0">Update</button>
                         </p>
                       </div>
+                      <div class="images">
+                          <img src="../../resources/sheetThickness.svg" id="sheet_thickness_img" alt="sheetThickness">
+                          <img src="../../resources/dadoWidth.svg" id="dado_width_img" alt="dadoWidth">
+                          <img src="../../resources/dadoDepth.svg" id="dado_depth_img" alt="dadoDepth">
+                      </div>
                       <script>
                          function sendDataToSketchUp() {
                           var sheetThickness = document.getElementById('sheet_thickness').value;
@@ -72,6 +86,26 @@ module AdamExtensions
 
                           sketchup.updateUnitsDialogValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
                         }
+                        
+                        document.getElementById("sheet_thickness").addEventListener('focusin', function() {
+                            document.getElementById("sheet_thickness_img").style.display="block";
+                        });
+                        document.getElementById("sheet_thickness").addEventListener('focusout', function() {
+                            document.getElementById("sheet_thickness_img").style.display="none";
+                        });
+                        document.getElementById("dado_width").addEventListener('focusin', function() {sketchup.putstr("dado_width in focus")
+                            document.getElementById("dado_width_img").style.display="block";
+                         });
+                        document.getElementById("dado_width").addEventListener('focusout', function() {
+                            document.getElementById("dado_width_img").style.display="none";
+                        });
+                        document.getElementById("dado_depth").addEventListener('focusin', function() {
+                            document.getElementById("dado_depth_img").style.display = "block";
+                         });
+                        document.getElementById("dado_depth").addEventListener('focusout', function() {
+                            document.getElementById("dado_depth_img").style.display = "none";
+                         });
+                        
                         document.getElementById("sheet_thickness").addEventListener('keypress', function(event) {
                             if (!/[0-9.]/.test(event.key)) {
                                 event.preventDefault(); // Prevent non-numeric characters
@@ -103,13 +137,17 @@ module AdamExtensions
                 :preferences_key => "units_dialog.dialog", # Unique key for persistence
                 :style => UI::HtmlDialog::STYLE_UTILITY, #  For a standard dialog appearance
                 #:width => 320,
-                #:height => 510,
+                :height => 600,
                 :resizable => false
             }
 
             dialog = UI::HtmlDialog.new(options)
             dialog.set_html(html)
             dialog.set_size(320, 380)
+
+            dialog.add_action_callback("putstr") do |action_context, str|
+                puts str
+            end
 
             # Ruby callback that JavaScript can trigger
             dialog.add_action_callback("updateUnitsDialogValues") do |action_context, sheet_thickness, dado_width, dado_depth|
