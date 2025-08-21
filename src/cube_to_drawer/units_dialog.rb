@@ -209,6 +209,13 @@ module AdamExtensions
                 dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
             end
 
+            base_dir = __dir__.sub("/src/cube_to_drawer", "")
+            sheet_thick_image = File.join(base_dir, "/resources", "sheetThickness.svg")
+            dado_width_image = File.join(base_dir, "resources", "dadoWidth.svg")
+            dado_depth_image = File.join(base_dir, "resources", "dadoDepth.svg")
+            dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
+            dialog.execute_script("document.getElementById('dado_width_img').src = '#{dado_width_image}';")
+            dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
             dialog.set_position(300, 300) # Center the dialog on the screen
             dialog.show # Display the dialog
             # Ruby callback that JavaScript can trigger
