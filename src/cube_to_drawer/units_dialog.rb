@@ -36,9 +36,10 @@ module AdamExtensions
                         .images {
                           vertical-align: middle;
                           horiz-align: center;
-                          height: 100%;
-                          margin: 0 auto;
-                          width: 100%;
+                          height: 160px;
+                          margin: auto;
+                          margin-top: 10px;
+                          width: 160px;
                           position: relative;
                         }
                         img { display: none; }
@@ -136,14 +137,14 @@ module AdamExtensions
                 :dialog_title => "Drawer Parameters",
                 :preferences_key => "units_dialog.dialog", # Unique key for persistence
                 :style => UI::HtmlDialog::STYLE_UTILITY, #  For a standard dialog appearance
-                #:width => 320,
-                :height => 600,
-                :resizable => false
+                #:width => 300,
+                #:height => 600,
+                :resizable => true
             }
 
             dialog = UI::HtmlDialog.new(options)
             dialog.set_html(html)
-            dialog.set_size(320, 380)
+            dialog.set_size(290, 540)
 
             dialog.add_action_callback("putstr") do |action_context, str|
                 puts str
