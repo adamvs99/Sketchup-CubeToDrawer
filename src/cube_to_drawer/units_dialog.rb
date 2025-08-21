@@ -74,9 +74,9 @@ module AdamExtensions
                         </p>
                       </div>
                       <div class="images">
-                          <img src="../../resources/sheetThickness.svg" id="sheet_thickness_img" alt="sheetThickness">
-                          <img src="../../resources/dadoWidth.svg" id="dado_width_img" alt="dadoWidth">
-                          <img src="../../resources/dadoDepth.svg" id="dado_depth_img" alt="dadoDepth">
+                          <img src="resources/sheetThickness.svg" id="sheet_thickness_img" alt="sheetThickness">
+                          <img src="resources/dadoWidth.svg" id="dado_width_img" alt="dadoWidth">
+                          <img src="resources/dadoDepth.svg" id="dado_depth_img" alt="dadoDepth">
                       </div>
                       <script>
                          function sendDataToSketchUp() {
@@ -209,10 +209,10 @@ module AdamExtensions
                 dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
             end
 
-            base_dir = __dir__.sub("/src/cube_to_drawer", "")
+            base_dir = __dir__.sub("cube_to_drawer", "")
             sheet_thick_image = File.join(base_dir, "/resources", "sheetThickness.svg")
-            dado_width_image = File.join(base_dir, "resources", "dadoWidth.svg")
-            dado_depth_image = File.join(base_dir, "resources", "dadoDepth.svg")
+            dado_width_image = File.join(base_dir, "/resources", "dadoWidth.svg")
+            dado_depth_image = File.join(base_dir, "/resources", "dadoDepth.svg")
             dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
             dialog.execute_script("document.getElementById('dado_width_img').src = '#{dado_width_image}';")
             dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
