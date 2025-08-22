@@ -11,6 +11,7 @@ require_relative 'cubic_shape'
 require_relative 'rectangle'
 require_relative 'utils'
 require_relative 'units_dialog'
+require_relative 'sel_observer'
 require 'pp'
 
 module AdamExtensions
@@ -77,6 +78,9 @@ module AdamExtensions
             end
         end
 
+        def self.drawer_groups
+            self._current_groups
+        end
         # @param [hide_dados] boolean to hide or not to hide the dados
         # called from settings panel - triggers an update
         def self.update_hidden_dado(hide_dados)
@@ -247,11 +251,12 @@ module AdamExtensions
         def self.ctd_main
             self.set_units_type
             sel = Sketchup.active_model.selection
-            unless sel.length != 1
-                self._cube_map = CubicShape::CubeMap.new(sel[0], "erase")
-                sel.clear
-            end
+            return unless sel.length==1
+            self._cube_map = CubicShape::CubeMap.new(sel[0], "erase")
+            return unless self._cube_map&.valid?
+            sel.clear
             UnitsDialog.show
+            SelectObserver.install
             self.update
         end # def ctd_main
 
