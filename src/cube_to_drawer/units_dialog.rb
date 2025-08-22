@@ -9,7 +9,20 @@ require_relative 'main'
 
 module AdamExtensions
     module UnitsDialog
+        class << self
+            attr_accessor :_dialog
+        end
+        self._dialog = nil
+
         def self.show
+            # re-show show if already instantiated but not visible
+            # makes this a singleton...
+            unless self._dialog.nil?
+                return if self._dialog.visible?
+                self._dialog.show
+                return
+            end
+
             html = <<-HTML
             <!DOCTYPE html>
                 <html>
@@ -36,10 +49,10 @@ module AdamExtensions
                         .images {
                           vertical-align: middle;
                           horiz-align: center;
-                          height: 160px;
+                          height: 60%;
                           margin: auto;
                           margin-top: 10px;
-                          width: 160px;
+                          width: 60%;
                           position: relative;
                         }
                         img { display: none; }
@@ -142,16 +155,16 @@ module AdamExtensions
                 :resizable => true
             }
 
-            dialog = UI::HtmlDialog.new(options)
-            dialog.set_html(html)
-            dialog.set_size(290, 540)
+            self._dialog = UI::HtmlDialog.new(options)
+            self._dialog.set_html(html)
+            self._dialog.set_size(290, 540)
 
-            dialog.add_action_callback("putstr") do |action_context, str|
+            self._dialog.add_action_callback("putstr") do |action_context, str|
                 puts str
             end
 
             # Ruby callback that JavaScript can trigger
-            dialog.add_action_callback("updateUnitsDialogValues") do |action_context, sheet_thickness, dado_width, dado_depth|
+            self._dialog.add_action_callback("updateUnitsDialogValues") do |action_context, sheet_thickness, dado_width, dado_depth|
                 valid_values = false
                 begin
                     sheet_thickness = Float(sheet_thickness)
@@ -177,11 +190,11 @@ module AdamExtensions
                 CubeToDrawer.update_sheet_dado_values(sheet_thickness, dado_width, dado_depth)
             end
 
-            dialog.add_action_callback("updateHiddenDado") do |action_context, hidden_dado_checked|
+            self._dialog.add_action_callback("updateHiddenDado") do |action_context, hidden_dado_checked|
                 CubeToDrawer.update_hidden_dado(hidden_dado_checked)
             end
 
-            dialog.add_action_callback("dom_loaded") do |action_context|
+            self._dialog.add_action_callback("dom_loaded") do |action_context|
                 # Note: internal unit type is always "imperial"
                 case CubeToDrawer._units_type
                 when "imperial"
@@ -202,25 +215,25 @@ module AdamExtensions
                 else
                     #
                 end
-                dialog.execute_script("document.getElementById('sheet_thickness').value = '#{sheet_thickness}';")
-                dialog.execute_script("document.getElementById('dado_width').value = '#{dado_width}';")
-                dialog.execute_script("document.getElementById('dado_depth').value = '#{dado_depth}';")
-                dialog.execute_script("document.getElementById('sheet_units').value = '#{units}';")
-                dialog.execute_script("document.getElementById('dado_width_units').value = '#{units}';")
-                dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
+                self._dialog.execute_script("document.getElementById('sheet_thickness').value = '#{sheet_thickness}';")
+                self._dialog.execute_script("document.getElementById('dado_width').value = '#{dado_width}';")
+                self._dialog.execute_script("document.getElementById('dado_depth').value = '#{dado_depth}';")
+                self._dialog.execute_script("document.getElementById('sheet_units').value = '#{units}';")
+                self._dialog.execute_script("document.getElementById('dado_width_units').value = '#{units}';")
+                self._dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
 
                 # set the image path
                 base_dir = __dir__.sub("cube_to_drawer", "")
                 sheet_thick_image = File.join(base_dir, "/resources", "sheetThickness.svg")
                 dado_width_image = File.join(base_dir, "/resources", "dadoWidth.svg")
                 dado_depth_image = File.join(base_dir, "/resources", "dadoDepth.svg")
-                dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
-                dialog.execute_script("document.getElementById('dado_width_img').src = '#{dado_width_image}';")
-                dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
+                self._dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
+                self._dialog.execute_script("document.getElementById('dado_width_img').src = '#{dado_width_image}';")
+                self._dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
             end
 
-            dialog.set_position(300, 300) # Center the dialog on the screen
-            dialog.show # Display the dialog
+            self._dialog.set_position(300, 300) # Center the self._dialog on the screen
+            self._dialog.show # Display the dialog
             # Ruby callback that JavaScript can trigger
         end # def self.show
     end # module UnitsDialog
