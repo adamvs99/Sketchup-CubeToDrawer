@@ -4,9 +4,8 @@
 #
 #  Created by Adam Silver on 08/06/25.
 #  copyright Adam Silver © 2025 all rights reserved
-
-require 'sketchup.rb'
-require_relative 'utils'
+#require 'sketchup.rb'
+require_relative '../../unit_test/sketchup.rb' # for unit test
 
 module AdamExtensions
 
@@ -51,7 +50,7 @@ module AdamExtensions
             end #_sort
 
             def _prnt(title)
-                puts "#{title} plane: #{orientation}   width: #{Utils::mm_unit(width)} depth: #{Utils::mm_unit(depth)} height: #{Utils::mm_unit(height)}"
+                puts "#{title} plane: #{orientation}   width: #{width} depth: #{depth} height: #{height}"
                 @points.each_with_index do |pt, index|
                     #z = sprintf("%.9f", pt.z)
                     puts " ".ljust(10) + "[x: #{pt.x}, y: #{pt.y}, z: #{pt.z}]".ljust(40)
@@ -116,7 +115,7 @@ module AdamExtensions
             end
 
             def orientation
-                height==0 ? "xy" : width==0 ? :"yz" : "xz"
+                height==0 ? "xy" : width==0 ? "yz" : "xz"
             end
 
             def flip(new_orientation)
@@ -125,9 +124,15 @@ module AdamExtensions
                 case orig_orientation
                 when "xy"
                     if new_orientation=="xz"
-                        #TODO
+                        mn_z = min_z; mx_z = min_z + depth
+                        y = min_y
+                        new_z = [mn_z, mx_z, mx_z, mn_z]
+                        @points.each_with_index {|pt, index| pt.z = new_z[index]; pt.y = y}
                     elsif new_orientation=="yz"
-                        #TODO
+                        mn_z = min_z; mx_z = min_z + width
+                        x = min_x
+                        new_z = [mn_z, mx_z, mx_z, mn_z]
+                        @points.each_with_index {|pt, index| pt.z = new_z[index]; pt.x = x}
                     end
                 when "xz"
                     if new_orientation=="xy"
@@ -143,9 +148,15 @@ module AdamExtensions
                     end
                 when "yz"
                     if new_orientation=="xy"
-                        #TODO
+                        mn_x = min_x; mx_x = min_x + height
+                        z = min_z
+                        new_x = [mn_x, mn_x, mx_x, mx_x]
+                        @points.each_with_index {|pt, index| pt.x = new_x[index]; pt.z = z}
                     elsif new_orientation=="xz"
-                        #TODO
+                        mn_x = min_x; mx_x = min_x + depth
+                        y = min_y
+                        new_x = [mn_x, mn_x, mx_x, mx_x]
+                        @points.each_with_index {|pt, index| pt.x = new_x[index]; pt.y = y}
                     end
                 else
                     # type code here
@@ -271,8 +282,8 @@ module AdamExtensions
                 end
                 super(pts)
             end
+        end # class WDHRect
 
-        end
     end # module GeoUtil
 end # module AdamExtensions
 
