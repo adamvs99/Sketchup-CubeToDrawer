@@ -24,11 +24,17 @@ module AdamExtensions
                                Geom::Point3d.new(corners[1]),
                                Geom::Point3d.new(corners[2]),
                                Geom::Point3d.new(corners[3])]
-                    sort_rect
                 end
+                sort_rect
             end
 
+            # @param - none
+            # sorts in a clockwise direction such that:
+            # xy - starting point is near left
+            # xz - starting point is bottom left
+            # yz - starting point is near bottom
             def sort_rect
+                return if @points.empty?
                 plane = orientation
                 case plane
                 when "xy"
@@ -49,12 +55,22 @@ module AdamExtensions
                 self
             end #_sort
 
+            # @param - title: string
+            # pretty prints header line of title orientation width depth height
+            # followed by the rectangle point
             def _prnt(title)
                 puts "#{title} plane: #{orientation}   width: #{width} depth: #{depth} height: #{height}"
                 @points.each_with_index do |pt, index|
                     #z = sprintf("%.9f", pt.z)
                     puts " ".ljust(10) + "[x: #{pt.x}, y: #{pt.y}, z: #{pt.z}]".ljust(40)
                 end
+            end
+
+            def ==(other)
+                @points[0] == other.points[0] &&
+                @points[1] == other.points[1] &&
+                @points[2] == other.points[2] &&
+                @points[3] == other.points[3]
             end
 
             def points
@@ -94,7 +110,7 @@ module AdamExtensions
             end
 
             def centerpoint
-                Geom::Point3d.new([min_x+width/2, min_y+depth/2,min_z+height/2])
+                Geom::Point3d.new([min_x + width/2, min_y + depth/2,min_z + height/2])
             end
 
             def zero_rect?
@@ -118,7 +134,10 @@ module AdamExtensions
                 height==0 ? "xy" : width==0 ? "yz" : "xz"
             end
 
+            # @param new_orientation: string
+            # will fip the rectangle from one x,y, or z aligned plane to another
             def flip(new_orientation)
+                return unless new_orientation == "xy" || new_orientation == "yz" || new_orientation == "xz"
                 return self if new_orientation==orientation
                 orig_orientation = orientation
                 case orig_orientation
@@ -164,18 +183,29 @@ module AdamExtensions
                 self
             end
 
+            # @param x: Numeric
+            # @param y: Numeric
+            # @param z: Numeric
+            # Moves the rectangle along one or more x, y, or z aligned planes
             def move(x=0, y=0, z=0)
                 return if x==0 && y==0 && z==0
                 @points.each {|pt| pt.x += x; pt.y += y; pt.z += z}
                 self
             end
-
+            # @param x: Numeric
+            # @param y: Numeric
+            # @param z: Numeric
+            # produces a new deep copy and moves it
             def copy(x=0, y=0, z=0)
                 new_rect = Rect.new(@points)
                 new_rect.move(x, y, z)
                 new_rect
             end
 
+            # @param x: Numeric
+            # @param y: Numeric
+            # @param z: Numeric
+            # expands x, y, and or z symmetrically  from the center
             def expand(x=0, y=0, z=0)
                 return self if x==0 && y==0 && z==0
                 return self if @points.empty?
@@ -202,6 +232,9 @@ module AdamExtensions
                 self
             end # def expand
 
+            # @param edge: String
+            # @param amount: Numeric
+            # moves an edge by amount
             def change_edge(edge, amount)
                 return unless amount!=0
                 case edge
