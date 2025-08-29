@@ -10,33 +10,6 @@ require 'sketchup.rb'
 module AdamExtensions
 
     module Utils
-        # @param [Numeric] number to be converted
-        # @param [String] units type of the number to be converted
-        #                 if already in the target type nothing is
-        #                 done
-        def self.in_unit(num, units_type = "metric")
-            return num if num==0 || units_type == "imperial"
-            units_type == "metric" ? num / 25.4 : num / 2.54
-        end
-
-        # @param [Numeric] number to be converted
-        # @param [String] units type of the number to be converted
-        #                 if already in the target type nothing is
-        #                 done
-        def self.mm_unit(num, units_type = "imperial")
-            return num if num==0 || units_type == "metric"
-            num * 25.4
-        end
-
-        # @param [Numeric] number to be converted
-        # @param [String] units type of the number to be converted
-        #                 if already in the target type nothing is
-        #                 done
-        def self.cm_unit(num, units_type = "imperial")
-            return num if num==0 || units_type == "cm_metric"
-            num * 2.54
-        end
-
         # @param [Sketchup::Model] current sketchup model
         # @param [Sketchup::Group] group to be re-shaped by the 'cut'
         # @param [GeoUtil::Rect] rectangle to extrude as the cut shape
