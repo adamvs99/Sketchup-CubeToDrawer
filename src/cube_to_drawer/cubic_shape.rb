@@ -17,9 +17,10 @@ module AdamExtensions
         # Note: all units are in imperial (decimal inch)
         #----------------------------------------------------------------------------------------------------------------------
         class CubeMap
-            def initialize(group, action="")
-                @_cube_map = Hash.new
+            def initialize(group)
+                @_cube_map = nil
                 return unless group.is_a? Sketchup::Group
+                @_cube_map = Hash.new
                 group.entities.each do |e|
                     next unless e.is_a? Sketchup::Face
                     face_points = e.vertices.map(&:position)
@@ -34,10 +35,21 @@ module AdamExtensions
                         _sort_faces("bottom", "top", face_points, z_pos[0]) unless _loading("bottom", "top", face_points, z_pos[0])
                     end
                 end
-                #_prnt
-                group.erase! if action.include? "erase"
-                self
             end # def initialize
+
+            def self.is_aligned_cube?(cube_group)
+                return false unless cube_group&.is_a? Sketchup::Group
+                face_count = 0; x_plane = 0; y_plane = 0; z_plane = 0
+                cube_group.entities.grep(Sketchup::Face).each do |f|
+                    face_count += 1
+                    x_plane += 1 if f.normal.parallel?(X_AXIS) && f.bounds.min.x.abs
+                    y_plane += 1 if f.normal.parallel?(Y_AXIS) && f.bounds.min.y.abs
+                    z_plane += 1 if f.normal.parallel?(Z_AXIS) && f.bounds.min.z.abs
+                end
+                return false unless face_count == 6
+                return false unless x_plane == 2 && y_plane == 2 && z_plane == 2
+                true
+            end
 
             def valid?
                 #@_cube_map.key?("bottom") && @_cube_map.key?("top") &&

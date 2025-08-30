@@ -6,8 +6,8 @@
 #  copyright Adam Silver © 2025 all rights reserved
 
 require 'sketchup.rb'
+require_relative 'drawer'
 require_relative 'units_dialog'
-require_relative 'main'
 
 
 module AdamExtensions
@@ -23,7 +23,7 @@ module AdamExtensions
                 model = Sketchup.active_model
                 model.selection.each do |e|
                     next unless e.is_a? Sketchup::Group
-                    if CubeToDrawer::drawer_groups.include?(e)
+                    if Drawer::Drawer::has_group?(e)
                         UnitsDialog::show
                         break
                     end

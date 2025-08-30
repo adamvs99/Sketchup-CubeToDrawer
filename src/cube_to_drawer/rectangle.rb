@@ -4,8 +4,8 @@
 #
 #  Created by Adam Silver on 08/06/25.
 #  copyright Adam Silver © 2025 all rights reserved
-#require 'sketchup.rb'
-require_relative '../../unit_test/sketchup.rb' # for unit test
+require 'sketchup.rb'
+#require_relative '../../unit_test/sketchup.rb' # for unit test
 
 module AdamExtensions
 

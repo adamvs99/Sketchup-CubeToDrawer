@@ -8,15 +8,13 @@
 module AdamExtensions
 
     module Units
-    class << self
-        attr_reader :_mm_in, :_cm_in
-        attr_accessor :_units_type
-    end
+        class << self
+            attr_accessor :_units_type, :_mm_in, :_cm_in
+        end
 
-    self._units_type = ""
-    self._mm_in = 25.4
-    self._cm_in = 2.54
-    module Units
+        self._units_type = ""
+        self._mm_in = 25.4
+        self._cm_in = 2.54
         def self.set_units_type
             model = Sketchup.active_model
             units_options = model.options["UnitsOptions"]

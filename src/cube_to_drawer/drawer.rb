@@ -19,40 +19,63 @@ module AdamExtensions
             @@dado_thickness = 0.0
             @@dado_depth = 0.0
             @@hidden_dado = false
+            @@drawers = []
 
-            self.initialize_units(length_format_code, length_unit_code)
-                # You can then use these codes to determine the actual unit string
-                # based on the SketchUp API documentation for LengthFormat and LengthUnit enums.
-                case length_format_code
-                when 0 # Decimal
-                    case length_unit_code
-                    when 0
-                        @@sheet_thickness = 0.75
-                        @@dado_thickness = 0.25
-                        @@dado_depth = 0.25
-                    when 1
-                        err = true
-                    when 2
-                        @@sheet_thickness = Units.in_unit(18)
-                        @@dado_thickness = Units.in_unit(6)
-                        @@dado_depth =  Units.in_unit(6)
-                    when 3
-                        @@sheet_thickness =  Units.in_unit(1.8)
-                        @@dado_thickness =  Units.in_unit(0.6)
-                        @@dado_depth =  Units.in_unit(0.6)
-                    when 4
-                        err = true
-                    end
-                when 1 # Architectural
-                    err = true
-                when 2 # Engineering
-                    err = true
-                when 3 # Fractional
+            def self.initialize_units
+                # this gets called when a drawer is created
+                # gate this if already there are already drawers
+                # created
+                return unless @@drawers.empty?
+                case Units::units_type
+                when 'imperial'
                     @@sheet_thickness = 0.75
                     @@dado_thickness = 0.25
                     @@dado_depth = 0.25
+                when "metric"
+                    @@sheet_thickness = Units.in_unit(18)
+                    @@dado_thickness = Units.in_unit(6)
+                    @@dado_depth =  Units.in_unit(6)
+                when "cm_metric"
+                    @@sheet_thickness =  Units.in_unit(1.8)
+                    @@dado_thickness =  Units.in_unit(0.6)
+                    @@dado_depth =  Units.in_unit(0.6)
                 else
                     err = true
+                end #case Units::unit_type
+            end
+
+            def self.sheet_thickness
+                @@sheet_thickness
+            end
+            def self.dado_thickness
+                @@dado_thickness
+            end
+            def self.dado_depth
+                @@dado_depth
+            end
+
+            def self.has_group?(group)
+                @@drawers.each do |drawer|
+                    return true if drawer.current_groups.include?(group)
+                end
+                false
+            end
+            def self.update
+                @@drawers.each do |drawer|
+                    next unless drawer.valid?
+                    drawer.clear_groups
+                    drawer.create_bottom_panel
+                    drawer.create_left_right_panels
+                    drawer.create_front_back_panels
+                end
+            end
+
+            def self.selection_to_drawers(selection, action="")
+                return if selection.nil?
+                selection.each do |s|
+                    next unless CubicShape::CubeMap.is_aligned_cube?(s)
+                    @@drawers << Drawer.new(s)
+                    s.erase! if action.include? "erase"
                 end
             end
 
@@ -60,15 +83,21 @@ module AdamExtensions
                 @face_map = nil
                 @current_groups = []
                 return unless cubic_group.is_a?(Sketchup::Group)
-                @face_map = CubicShape::CubeMap.new(cubic_group, "erase")
-                return unless self._cube_map&.valid?
-                sel.clear
+                @face_map = CubicShape::CubeMap.new(cubic_group)
+                @@drawers << self if @face_map&.valid?
             end
 
             def valid?
-                @face_map?.valid && @@sheet_thickness > 0
+                @face_map.valid? && @@sheet_thickness > 0.0
+            end
+            def clear_groups
+                @current_groups.each {|g| g.erase! if g.respond_to?(:erase!)}
+                @current_groups.clear
             end
 
+            def current_groups
+                @current_groups
+            end
             def create_bottom_panel
                 # gate this function if object not valid
                 return unless valid?
@@ -157,7 +186,7 @@ module AdamExtensions
                 @current_groups << Utils.copy_move_rotate_group(right_side_group, -front_rect.width + @@sheet_thickness, 0, 0, Z_AXIS, 180)
             end # def self.create_side_panels
 
-            def self.create_front_back_panels
+            def create_front_back_panels
                 # gate this function if object not valid
                 return unless valid?
                 model = Sketchup.active_model
@@ -204,12 +233,12 @@ module AdamExtensions
 
             # @param [hide_dados] boolean to hide or not to hide the dados
             # called from settings panel - triggers an update
-            def update_hidden_dado(hide_dado)
+            def self.update_hidden_dado(hide_dado)
                 @@hidden_dado = hide_dado
                 self.update
             end
             # called from settting panel - triggers an update
-            def update_sheet_dado_values(new_sheet_thickness, new_dado_thickness, new_dado_depth)
+            def self.update_sheet_dado_values(new_sheet_thickness, new_dado_thickness, new_dado_depth)
                 return if new_sheet_thickness==@@sheet_thickness && new_dado_thickness==@@dado_thickness && new_dado_depth==@@dado_depth
                 @@sheet_thickness = new_sheet_thickness
                 @@dado_thickness = new_dado_thickness
@@ -217,16 +246,6 @@ module AdamExtensions
                 self.update
             end
 
-            def update
-                return unless valid?
-                @current_groups.each {|g| g.erase! if g.respond_to?(:erase!)}
-                @current_groups.clear
-                create_bottom_panel
-                create_left_right_panels
-                create_front_back_panels
-            end
-
         end # class Drawer
-
     end # module Drawer
 end # module AdamExtensions

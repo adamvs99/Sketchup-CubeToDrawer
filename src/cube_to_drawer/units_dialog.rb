@@ -5,7 +5,8 @@
 #  Created by Adam Silver on 08/14/25.
 #  copyright Adam Silver © 2025 all rights reserved
 
-require_relative 'main'
+require_relative 'drawer'
+require_relative 'units'
 
 module AdamExtensions
     module UnitsDialog
@@ -175,43 +176,46 @@ module AdamExtensions
                     # TODO add handler
                 end
                 # need to convert back to "imperial" units
-                case CubeToDrawer._units_type
+                case Units::units_type
                 when "metric"
-                    sheet_thickness = Utils.in_unit(sheet_thickness)
-                    dado_width = Utils.in_unit(dado_width)
-                    dado_depth = Utils.in_unit(dado_depth)
+                    sheet_thickness = Units::in_unit(sheet_thickness)
+                    dado_width = Units::in_unit(dado_width)
+                    dado_depth = Units::in_unit(dado_depth)
                 when "cm_metric"
-                    sheet_thickness = Utils.in_unit(sheet_thickness)
-                    dado_width = Utils.in_unit(dado_width)
-                    dado_depth = Utils.in_unit(dado_depth)
+                    sheet_thickness = Units::in_unit(sheet_thickness)
+                    dado_width = Units::in_unit(dado_width)
+                    dado_depth = Units::in_unit(dado_depth)
                 else
                     #
                 end
-                CubeToDrawer.update_sheet_dado_values(sheet_thickness, dado_width, dado_depth)
+                Drawer::Drawer::update_sheet_dado_values(sheet_thickness, dado_width, dado_depth)
             end
 
             self._dialog.add_action_callback("updateHiddenDado") do |action_context, hidden_dado_checked|
-                CubeToDrawer.update_hidden_dado(hidden_dado_checked)
+                Drawer::Drawer::update_hidden_dado(hidden_dado_checked)
             end
 
             self._dialog.add_action_callback("dom_loaded") do |action_context|
                 # Note: internal unit type is always "imperial"
-                case CubeToDrawer._units_type
+                sheet_thickness = Drawer::Drawer.sheet_thickness
+                dado_width = Drawer::Drawer.dado_thickness
+                dado_depth = Drawer::Drawer.dado_depth
+                case Units::units_type
                 when "imperial"
                     units = "in"
-                    sheet_thickness = sprintf("%.2f", CubeToDrawer._sheet_thickness)
-                    dado_width = sprintf("%.2f", CubeToDrawer._dado_thickness)
-                    dado_depth = sprintf("%.2f", CubeToDrawer._dado_depth)
+                    sheet_thickness = sprintf("%.2f", sheet_thickness)
+                    dado_width = sprintf("%.2f", dado_width)
+                    dado_depth = sprintf("%.2f", dado_depth)
                 when "metric"
                     units = "mm"
-                    sheet_thickness = sprintf("%.2f", Utils.mm_unit(CubeToDrawer._sheet_thickness, "imperial"))
-                    dado_width = sprintf("%.2f", Utils.mm_unit(CubeToDrawer._dado_thickness, "imperial"))
-                    dado_depth = sprintf("%.2f", Utils.mm_unit(CubeToDrawer._dado_depth, "imperial"))
+                    sheet_thickness = sprintf("%.2f", Units::mm_unit(sheet_thickness, "imperial"))
+                    dado_width = sprintf("%.2f", Units::mm_unit(dado_width, "imperial"))
+                    dado_depth = sprintf("%.2f", Units::mm_unit(dado_depth, "imperial"))
                 when "cm_metric"
                     units = "mm"
-                    sheet_thickness = sprintf("%.2f", Utils.cm_unit(CubeToDrawer._sheet_thickness, "imperial"))
-                    dado_width = sprintf("%.2f", Utils.cm_unit(CubeToDrawer._dado_thickness, "imperial"))
-                    dado_depth = sprintf("%.2f", Utils.cm_unit(CubeToDrawer._dado_depth, "imperial"))
+                    sheet_thickness = sprintf("%.2f", Units::cm_unit(sheet_thickness, "imperial"))
+                    dado_width = sprintf("%.2f", Units::cm_unit(dado_width, "imperial"))
+                    dado_depth = sprintf("%.2f", Units::cm_unit(dado_depth, "imperial"))
                 else
                     #
                 end
