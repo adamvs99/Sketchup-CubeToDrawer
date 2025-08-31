@@ -39,4 +39,4 @@ module AdamExtensions
             Sketchup.active_model.selection.add_observer(self._sel_observer)
         end
     end #module SelectObserver
-end #v UnitsDialog
+end # module AdamExtensions
