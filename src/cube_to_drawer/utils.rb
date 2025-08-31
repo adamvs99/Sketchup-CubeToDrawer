@@ -10,6 +10,12 @@ require 'sketchup.rb'
 module AdamExtensions
 
     module Utils
+
+        def self.tag_group(group, tag)
+            return unless group?.is_a?(Sketchup::Group)
+            group.instance_eval {@avs_data=tag}
+            group
+        end
         # @param [Sketchup::Model] current sketchup model
         # @param [Sketchup::Group] group to be re-shaped by the 'cut'
         # @param [GeoUtil::Rect] rectangle to extrude as the cut shape
