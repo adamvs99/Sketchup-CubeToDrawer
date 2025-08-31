@@ -8,15 +8,16 @@
 require 'sketchup.rb'
 require 'extensions.rb'
 require_relative 'rectangle'
+require 'pp'
 
 module AdamExtensions
 
-    module CubicShape
+    module BoxShape
         #----------------------------------------------------------------------------------------------------------------------
-        # CubeMap - encapsulates data on a 3d 'cube' into a Hash "top", "bottom", "left", "right, "front", "back"
+        # BoxMap - encapsulates data on a 3d 'cube' into a Hash "top", "bottom", "left", "right, "front", "back"
         # Note: all units are in imperial (decimal inch)
         #----------------------------------------------------------------------------------------------------------------------
-        class CubeMap
+        class BoxMap
             def initialize(group)
                 @_cube_map = nil
                 return unless group.is_a? Sketchup::Group
@@ -104,7 +105,7 @@ module AdamExtensions
                 return rect if rect.empty?
                 rect.copy(x, y, z)
             end
-        end # class CubeMap
-    end # module LoadTest
+        end # class BoxMap
+    end # module BoxShape
 end # module AdamExtensions
 

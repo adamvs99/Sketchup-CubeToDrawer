@@ -73,7 +73,7 @@ module AdamExtensions
             def self.selection_to_drawers(selection, action="")
                 return if selection.nil?
                 selection.each do |s|
-                    next unless CubicShape::CubeMap.is_aligned_cube?(s)
+                    next unless BoxShape::BoxMap.is_aligned_cube?(s)
                     @@drawers << Drawer.new(s)
                     s.erase! if action.include? "erase"
                 end
@@ -83,7 +83,7 @@ module AdamExtensions
                 @face_map = nil
                 @current_groups = []
                 return unless cubic_group.is_a?(Sketchup::Group)
-                @face_map = CubicShape::CubeMap.new(cubic_group)
+                @face_map = BoxShape::BoxMap.new(cubic_group)
                 @@drawers << self if @face_map&.valid?
             end
 
@@ -91,7 +91,7 @@ module AdamExtensions
                 @face_map.valid? && @@sheet_thickness > 0.0
             end
             def clear_groups
-                @current_groups.each {|g| g.erase! if g.respond_to?(:erase!)}
+                @current_groups.each {|e| e.erase! if e.respond_to?(:erase!)}
                 @current_groups.clear
             end
 
