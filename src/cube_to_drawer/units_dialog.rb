@@ -94,31 +94,47 @@ module AdamExtensions
                           <img id="dado_depth_img" alt="dadoDepth">
                       </div>
                       <script>
-                         function sendDataToSketchUp() {
-                          var sheetThickness = document.getElementById('sheet_thickness').value;
-                          var dadoWidth = document.getElementById('dado_width').value;
-                          var dadoDepth = document.getElementById('dado_depth').value;
+                        function sendDataToSketchUp() {
+                            var sheetThickness = document.getElementById('sheet_thickness').value;
+                            var dadoWidth = document.getElementById('dado_width').value;
+                            var dadoDepth = document.getElementById('dado_depth').value;
 
-                          sketchup.updateUnitsDialogValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
+                            sketchup.updateUnitsDialogValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
                         }
                         
-                        document.getElementById("sheet_thickness").addEventListener('focusin', function() {
+                        function inputNumberFormat(elementID) {
+                            const inputElement = document.getElementById(elementID);
+                            const inputValue = inputElement.value;
+                            const numberValue = parseFloat(inputValue);
+                            if (!isNaN(numberValue)) {
+                                inputElement.value = numberValue.toFixed(2);
+                            } else {
+                                console.warn("Input is not a valid number.");
+                            }
+                       }
+
+// Example HTML for the input field
+// <input type="text" id="myInput" onblur="formatInputToTwoDecimals()">
+                       document.getElementById("sheet_thickness").addEventListener('focusin', function() {
                             document.getElementById("sheet_thickness_img").style.display="block";
                         });
                         document.getElementById("sheet_thickness").addEventListener('focusout', function() {
                             document.getElementById("sheet_thickness_img").style.display="none";
+                            inputNumberFormat("sheet_thickness");
                         });
                         document.getElementById("dado_width").addEventListener('focusin', function() {sketchup.putstr("dado_width in focus")
                             document.getElementById("dado_width_img").style.display="block";
                          });
                         document.getElementById("dado_width").addEventListener('focusout', function() {
                             document.getElementById("dado_width_img").style.display="none";
+                            inputNumberFormat("dado_width");
                         });
                         document.getElementById("dado_depth").addEventListener('focusin', function() {
                             document.getElementById("dado_depth_img").style.display = "block";
                          });
                         document.getElementById("dado_depth").addEventListener('focusout', function() {
                             document.getElementById("dado_depth_img").style.display = "none";
+                            inputNumberFormat("dado_depth");
                          });
                         
                         document.getElementById("sheet_thickness").addEventListener('keypress', function(event) {
