@@ -30,7 +30,7 @@ module AdamExtensions
         end # def ctd_main
 
         unless file_loaded(__FILE__)
-            menu = UI.menu("Extensions").add_item("Cube to Drawer") { self.ctd_main }
+            menu = UI.menu("Extensions").add_item("Box to Drawer") { self.ctd_main }
             file_loaded(__FILE__)
         end
 

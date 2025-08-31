@@ -6,7 +6,7 @@
 #  copyright Adam Silver © 2025 all rights reserved
 
 require 'sketchup.rb'
-require_relative 'cubic_shape.rb'
+require_relative 'box_shape'
 require_relative 'rectangle'
 require_relative 'units'
 require_relative 'utils'
@@ -145,7 +145,8 @@ module AdamExtensions
                 return unless valid?
 
                 side_rect = @face_map.to_rect_copy("right")
-                # create a face of the cut elongated cube item juts back of the 'front' of the initial cube
+
+                # create a face of the cut elongated cube item just back of the 'front' of the initial cube
                 model = Sketchup.active_model
                 # create the 'side' piece
                 model.start_operation("Create Side Right Group", true)

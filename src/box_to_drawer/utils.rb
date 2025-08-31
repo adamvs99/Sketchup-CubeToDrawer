@@ -6,11 +6,14 @@
 #  copyright Adam Silver © 2025 all rights reserved
 
 require 'sketchup.rb'
+require_relative 'rectangle'
 
 module AdamExtensions
 
     module Utils
 
+        # @param [Object] target group
+        # @param [Hash] tag to be bound to the group
         def self.tag_group(group, tag)
             return unless group?.is_a?(Sketchup::Group)
             group.instance_eval {@avs_data=tag}

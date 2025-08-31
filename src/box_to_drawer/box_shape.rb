@@ -22,12 +22,12 @@ module AdamExtensions
                 @_cube_map = nil
                 return unless group.is_a? Sketchup::Group
                 @_cube_map = Hash.new
-                group.entities.each do |e|
-                    next unless e.is_a? Sketchup::Face
-                    face_points = e.vertices.map(&:position)
-                    x_pos = e.vertices.map {|vertex| vertex.position[0]}
-                    y_pos = e.vertices.map {|vertex| vertex.position[1]}
-                    z_pos = e.vertices.map {|vertex| vertex.position[2]}
+                group.entities.each do |face|
+                    next unless face.is_a? Sketchup::Face
+                    face_points = GeoUtil::GlobalRect.new(face)
+                    x_pos = face_points.points.map {|pt| pt.x}
+                    y_pos = face_points.points.map {|pt| pt.y}
+                    z_pos = face_points.points.map {|pt| pt.z}
                     if x_pos.uniq.count <= 1 # it's a side
                         _sort_faces("left", "right", face_points, x_pos[0]) unless _loading("left", "right", face_points, x_pos[0])
                     elsif y_pos.uniq.count <= 1 # it's a front or back
@@ -60,10 +60,10 @@ module AdamExtensions
             end
             def _prnt
                 @_cube_map.each do |face, data|
-                    puts face.ljust(8)   +   (data[:face_points][0]).to_s.ljust(22)
-                    puts "".ljust(8) +   (data[:face_points][1]).to_s.ljust(22)
-                    puts "".ljust(8) +   (data[:face_points][2]).to_s.ljust(22)
-                    puts "".ljust(8) +   (data[:face_points][3]).to_s.ljust(22)
+                    puts face.ljust(8)   +   (data[:face_points].points[0]).to_s.ljust(22)
+                    puts "".ljust(8) +   (data[:face_points].points[1]).to_s.ljust(22)
+                    puts "".ljust(8) +   (data[:face_points].points[2]).to_s.ljust(22)
+                    puts "".ljust(8) +   (data[:face_points].points[3]).to_s.ljust(22)
                 end
             end
             def _loading(key_1, key_2, face_points, plane)
@@ -97,12 +97,12 @@ module AdamExtensions
 
             def face_points(which_face)
                 return [] unless @_cube_map.key?(which_face)
-                @_cube_map[which_face][:face_points]
+                @_cube_map[which_face][:face_points].points
             end # face_points
 
             def to_rect_copy(which_face, x=0, y=0, z=0)
-                rect = GeoUtil::Rect.new(face_points(which_face))
-                return rect if rect.empty?
+                rect = @_cube_map[which_face][:face_points]
+                return GeoUtil::Rect.new([]) if rect.empty?
                 rect.copy(x, y, z)
             end
         end # class BoxMap

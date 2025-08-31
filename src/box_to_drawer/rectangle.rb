@@ -17,6 +17,7 @@ module AdamExtensions
         class Rect
             def initialize(corners)
                 # Note: units are imperial
+                corners = Array.new if corners.nil?
                 if corners.empty?
                     @points = corners
                 else
@@ -316,6 +317,25 @@ module AdamExtensions
                 super(pts)
             end
         end # class WDHRect
+
+        class GlobalRect < Rect
+
+            #@param [Sketchup::Face] face
+            def initialize(face)
+                return super(nil) unless face&.is_a?(Sketchup::Face)
+                #return super(nil) unless face.respond_to?(:parent) && face.parent.is_a?(Sketchup::Group)
+                model = Sketchup.active_model
+                transform = model.edit_transform
+                path = model.active_path || []
+                path.each {|p|  transform *= p.transform }
+                pts = []
+                face.vertices.each do |vertex|
+                    pts << vertex.position.transform(transform)
+                end
+                super(pts)
+            end # def initialize
+
+        end # class GlobalRect
 
     end # module GeoUtil
 end # module AdamExtensions
