@@ -19,12 +19,12 @@ module AdamExtensions
         #----------------------------------------------------------------------------------------------------------------------
         class BoxMap
             def initialize(group)
-                @_cube_map = nil
+                @_box_map = nil
                 return unless group.is_a? Sketchup::Group
-                @_cube_map = Hash.new
-                group.entities.each do |face|
-                    next unless face.is_a? Sketchup::Face
-                    face_points = GeoUtil::GlobalRect.new(face)
+                @_box_map = Hash.new
+                faces = group.entities.grep(Sketchup::Face)
+                faces.each do |face|
+                    face_points = GeoUtil::GlobalRect.new(face, group.transformation)
                     x_pos = face_points.points.map {|pt| pt.x}
                     y_pos = face_points.points.map {|pt| pt.y}
                     z_pos = face_points.points.map {|pt| pt.z}
@@ -38,7 +38,7 @@ module AdamExtensions
                 end
             end # def initialize
 
-            def self.is_aligned_cube?(cube_group)
+            def self.is_aligned_box?(cube_group)
                 return false unless cube_group&.is_a? Sketchup::Group
                 face_count = 0; x_plane = 0; y_plane = 0; z_plane = 0
                 cube_group.entities.grep(Sketchup::Face).each do |f|
@@ -53,13 +53,13 @@ module AdamExtensions
             end
 
             def valid?
-                #@_cube_map.key?("bottom") && @_cube_map.key?("top") &&
-                #@_cube_map.key?("left") && @_cube_map.key?("right") &&
-                #@_cube_map.key?("front") && @_cube_map.key?("back")
-                @_cube_map.size == 6
+                #@_box_map.key?("bottom") && @_box_map.key?("top") &&
+                #@_box_map.key?("left") && @_box_map.key?("right") &&
+                #@_box_map.key?("front") && @_box_map.key?("back")
+                @_box_map.size == 6
             end
             def _prnt
-                @_cube_map.each do |face, data|
+                @_box_map.each do |face, data|
                     puts face.ljust(8)   +   (data[:face_points].points[0]).to_s.ljust(22)
                     puts "".ljust(8) +   (data[:face_points].points[1]).to_s.ljust(22)
                     puts "".ljust(8) +   (data[:face_points].points[2]).to_s.ljust(22)
@@ -69,9 +69,9 @@ module AdamExtensions
             def _loading(key_1, key_2, face_points, plane)
                 # this loads the initial values into both keys, e.g., "top", "bottom",
                 # and returns 'true' meaning it WAS loading
-                return false if @_cube_map.key?(key_1) && @_cube_map.key?(key_2)
-                @_cube_map[key_1] = {"face_points": face_points, "plane": plane}
-                @_cube_map[key_2] = {"face_points": face_points, "plane": plane}
+                return false if @_box_map.key?(key_1) && @_box_map.key?(key_2)
+                @_box_map[key_1] = {"face_points": face_points, "plane": plane}
+                @_box_map[key_2] = {"face_points": face_points, "plane": plane}
                 true
             end #_loading
 
@@ -82,26 +82,26 @@ module AdamExtensions
                 # were loaded into both "top" and "bottom" keys the "bottom"
                 # would replace the first of the key pair because it's 'plane',
                 # or Z plane in this case is less than the "top" plane.
-                if plane < @_cube_map[key_1][:plane]
-                    @_cube_map[key_1][:face_points] = face_points
-                    @_cube_map[key_1][:plane] = plane
-                elsif plane > @_cube_map[key_2][:plane]
-                    @_cube_map[key_2][:face_points] = face_points
-                    @_cube_map[key_2][:plane] = plane
+                if plane < @_box_map[key_1][:plane]
+                    @_box_map[key_1][:face_points] = face_points
+                    @_box_map[key_1][:plane] = plane
+                elsif plane > @_box_map[key_2][:plane]
+                    @_box_map[key_2][:face_points] = face_points
+                    @_box_map[key_2][:plane] = plane
                 end
             end #_sort_faces
 
             def key?(key)
-                @_cube_map.key?(key)
+                @_box_map.key?(key)
             end
 
             def face_points(which_face)
-                return [] unless @_cube_map.key?(which_face)
-                @_cube_map[which_face][:face_points].points
+                return [] unless @_box_map.key?(which_face)
+                @_box_map[which_face][:face_points].points
             end # face_points
 
             def to_rect_copy(which_face, x=0, y=0, z=0)
-                rect = @_cube_map[which_face][:face_points]
+                rect = @_box_map[which_face][:face_points]
                 return GeoUtil::Rect.new([]) if rect.empty?
                 rect.copy(x, y, z)
             end
