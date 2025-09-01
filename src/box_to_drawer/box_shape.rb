@@ -8,7 +8,6 @@
 require 'sketchup.rb'
 require 'extensions.rb'
 require_relative 'rectangle'
-require 'pp'
 
 module AdamExtensions
 

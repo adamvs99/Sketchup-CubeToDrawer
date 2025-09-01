@@ -71,11 +71,16 @@ module AdamExtensions
             end
 
             def self.selection_to_drawers(selection, action="")
-                return if selection.nil?
+                return if selection&.empty?
+                groups = []
                 selection.each do |s|
                     next unless BoxShape::BoxMap.is_aligned_box?(s)
                     @@drawers << Drawer.new(s)
-                    s.erase! if action.include? "erase"
+                    groups << s
+                end
+                if action == "erase"
+                    selection.clear
+                    groups.each {|g| g.erase!}
                 end
             end
 
