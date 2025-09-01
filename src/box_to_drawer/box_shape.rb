@@ -13,7 +13,7 @@ module AdamExtensions
 
     module BoxShape
         #----------------------------------------------------------------------------------------------------------------------
-        # BoxMap - encapsulates data on a 3d 'cube' into a Hash "top", "bottom", "left", "right, "front", "back"
+        # BoxMap - encapsulates data on a 3d 'box' into a Hash "top", "bottom", "left", "right, "front", "back"
         # Note: all units are in imperial (decimal inch)
         #----------------------------------------------------------------------------------------------------------------------
         class BoxMap
@@ -37,10 +37,10 @@ module AdamExtensions
                 end
             end # def initialize
 
-            def self.is_aligned_box?(cube_group)
-                return false unless cube_group&.is_a? Sketchup::Group
+            def self.is_aligned_box?(box_group)
+                return false unless box_group&.is_a? Sketchup::Group
                 face_count = 0; x_plane = 0; y_plane = 0; z_plane = 0
-                cube_group.entities.grep(Sketchup::Face).each do |f|
+                box_group.entities.grep(Sketchup::Face).each do |f|
                     face_count += 1
                     x_plane += 1 if f.normal.parallel?(X_AXIS) && f.bounds.min.x.abs
                     y_plane += 1 if f.normal.parallel?(Y_AXIS) && f.bounds.min.y.abs
