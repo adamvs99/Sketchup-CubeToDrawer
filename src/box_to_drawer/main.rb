@@ -14,7 +14,7 @@ require_relative 'sel_observer'
 
 module AdamExtensions
 
-    module CubeToDrawer
+    module BoxToDrawer
 
 
         #-------------------------------------------------------------------------------
@@ -34,5 +34,5 @@ module AdamExtensions
             file_loaded(__FILE__)
         end
 
-    end # module CubeToDrawer
+    end # module BoxToDrawer
 end # module AdamExtensions
