@@ -73,17 +73,17 @@ module AdamExtensions
             def self.selection_to_drawers(selection, action="")
                 return if selection.nil?
                 selection.each do |s|
-                    next unless BoxShape::BoxMap.is_aligned_cube?(s)
+                    next unless BoxShape::BoxMap.is_aligned_box?(s)
                     @@drawers << Drawer.new(s)
                     s.erase! if action.include? "erase"
                 end
             end
 
-            def initialize(cubic_group)
+            def initialize(box_group)
                 @face_map = nil
                 @current_groups = []
-                return unless cubic_group.is_a?(Sketchup::Group)
-                @face_map = BoxShape::BoxMap.new(cubic_group)
+                return unless box_group.is_a?(Sketchup::Group)
+                @face_map = BoxShape::BoxMap.new(box_group)
                 @@drawers << self if @face_map&.valid?
             end
 
@@ -146,7 +146,7 @@ module AdamExtensions
 
                 side_rect = @face_map.to_rect_copy("right")
 
-                # create a face of the cut elongated cube item just back of the 'front' of the initial cube
+                # create a face of the cut elongated box item just back of the 'front' of the initial box
                 model = Sketchup.active_model
                 # create the 'side' piece
                 model.start_operation("Create Side Right Group", true)
