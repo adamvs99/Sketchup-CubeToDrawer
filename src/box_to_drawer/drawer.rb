@@ -44,6 +44,16 @@ module AdamExtensions
                 end #case Units::unit_type
             end
 
+            #@param [group] the group to check
+            def self.is_drawer_group?(group)
+                return false unless group.is_a?(Sketchup::Group)
+                sheet_thickness = group.get_attribute("drawer_data", "sheet_thickness")
+                sheet_thickness && sheet_thickness > 0.0
+            end
+
+            def self.hidden_dado?
+                @@hidden_dado
+            end
             def self.sheet_thickness
                 @@sheet_thickness
             end
@@ -67,6 +77,7 @@ module AdamExtensions
                     drawer.create_bottom_panel
                     drawer.create_left_right_panels
                     drawer.create_front_back_panels
+                    drawer.create_bounding_group
                 end
             end
 
@@ -75,10 +86,10 @@ module AdamExtensions
                 groups = []
                 selection.each do |s|
                     next unless BoxShape::BoxMap.is_aligned_box?(s)
-                    @@drawers << Drawer.new(s)
+                    Drawer.new(s)
                     groups << s
                 end
-                if action == "erase"
+                if action.include? "erase"
                     selection.clear
                     groups.each {|g| g.erase!}
                 end
@@ -87,21 +98,28 @@ module AdamExtensions
             def initialize(box_group)
                 @face_map = nil
                 @current_groups = []
+                @bounding_group = nil
                 return unless box_group.is_a?(Sketchup::Group)
                 @face_map = BoxShape::BoxMap.new(box_group)
-                @@drawers << self if @face_map&.valid?
+                @@drawers << self if valid?
             end
 
             def valid?
-                @face_map.valid? && @@sheet_thickness > 0.0
+                @face_map&.valid? && @@sheet_thickness > 0.0
             end
             def clear_groups
-                @current_groups.each {|e| e.erase! if e.respond_to?(:erase!)}
+                @bounding_group&.erase! unless @bounding_group&.deleted?
+                @bounding_group = nil
+                @current_groups.each {|e| e.erase! if e&.respond_to?(:erase!)}
                 @current_groups.clear
             end
 
             def current_groups
                 @current_groups
+            end
+
+            def bounding_group
+                @bounding_group
             end
             def create_bottom_panel
                 # gate this function if object not valid
@@ -236,6 +254,26 @@ module AdamExtensions
                 @current_groups << Utils.copy_move_rotate_group(front_group, 0, side_rect.depth - @@sheet_thickness, 0, Z_AXIS, 180)
                 model.commit_operation  # Slice Bottom Dado
             end # def self.create_side_front_back_panels
+
+            def create_bounding_group
+                # gate this function if object not valid
+                return unless valid?
+                group_data = {"sheet_thickness":  @@sheet_thickness,
+                              "dado_thickness": @@dado_thickness,
+                              "dado_depth":     @@dado_depth,
+                              "hidden_dado":    @@hidden_dado }
+                model = Sketchup.active_model
+                bounding_group = model.entities.add_group
+                @current_groups.each do |g|
+                    component = bounding_group.entities.add_instance(g.definition, g.transformation)
+                    Utils::tag_entity(component, "drawer_data", group_data)
+                    g.erase!
+                end
+                @current_groups.clear
+                group_data["bounding_group"] = "drawer bounding group"
+                Utils::tag_entity(bounding_group, "drawer_data", group_data)
+                @bounding_group = bounding_group
+            end
 
             # @param [hide_dados] boolean to hide or not to hide the dados
             # called from settings panel - triggers an update
