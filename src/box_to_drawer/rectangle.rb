@@ -5,6 +5,7 @@
 #  Created by Adam Silver on 08/06/25.
 #  copyright Adam Silver © 2025 all rights reserved
 require 'sketchup.rb'
+require 'extensions.rb'
 #require_relative '../../unit_test/sketchup.rb' # for unit test
 
 module AdamExtensions
@@ -15,6 +16,9 @@ module AdamExtensions
         # Note: all units are in imperial (decimal inch)
         #----------------------------------------------------------------------------------------------------------------------
         class Rect
+            # @param corners: Array of Geom::Point3d
+            # @return Rect
+            # @return empty Rect if no corners are given
             def initialize(corners)
                 # Note: units are imperial
                 corners = Array.new if corners.nil?
@@ -279,6 +283,7 @@ module AdamExtensions
             # @param [Numeric] 'x' length
             # @param [Numeric] 'y' length
             # @param [Numeric] 'z' length
+            # return WDHRect
             def initialize(origin, width, depth, height)
                 # Note: units are imperial
                 if width < 0
@@ -321,22 +326,15 @@ module AdamExtensions
         class GlobalRect < Rect
 
             #@param [Sketchup::Face] face
-            def initialize(face)
+            #@param [Sketchup::Transformation] transformation
+            #@return [GlobalRect]
+            def initialize(face, transformation)
                 return super(nil) unless face&.is_a?(Sketchup::Face)
-                #return super(nil) unless face.respond_to?(:parent) && face.parent.is_a?(Sketchup::Group)
-                model = Sketchup.active_model
-                transform = model.edit_transform
-                path = model.active_path || []
-                path.each {|p|  transform *= p.transform }
-                pts = []
-                face.vertices.each do |vertex|
-                    pts << vertex.position.transform(transform)
-                end
-                super(pts)
+                global_points = face.vertices.map {|vertex| vertex.position.transform(transformation)}
+                super(global_points)
             end # def initialize
 
         end # class GlobalRect
-
     end # module GeoUtil
 end # module AdamExtensions
 
