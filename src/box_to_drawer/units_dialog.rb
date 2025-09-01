@@ -28,7 +28,7 @@ module AdamExtensions
             <!DOCTYPE html>
                 <html>
                     <head>
-                      <title>Cube to Drawer Parameters</title>
+                      <title>Box to Drawer Parameters</title>
                       <style>
                         body { font-family: sans-serif; }
                         button { padding: 10px 20px; }
@@ -60,7 +60,7 @@ module AdamExtensions
                       </style>
                     </head>
                     <body>
-                      <h3 style="text-align: center;">Cube to Drawer Parameters</h3>
+                      <h3 style="text-align: center;">Box to Drawer Parameters</h3>
                       <div class="center">
                         <h3>Thickness of drawer panels</h3>
                         <p>
@@ -243,7 +243,7 @@ module AdamExtensions
                 self._dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
 
                 # set the image path
-                base_dir = __dir__.sub("cube_to_drawer", "")
+                base_dir = __dir__.sub("box_to_drawer", "")
                 sheet_thick_image = File.join(base_dir, "/resources", "sheetThickness.svg")
                 dado_width_image = File.join(base_dir, "/resources", "dadoWidth.svg")
                 dado_depth_image = File.join(base_dir, "/resources", "dadoDepth.svg")
