@@ -7,6 +7,7 @@
 
 require 'sketchup.rb'
 require 'extensions.rb'
+require_relative 'drawer'
 require_relative 'rectangle'
 
 module AdamExtensions
@@ -104,6 +105,28 @@ module AdamExtensions
                 return GeoUtil::Rect.new([]) if rect.empty?
                 rect.copy(x, y, z)
             end
+
+            #@param [Sketchup::Group] group
+            def self.bounding_box_to_box_group(group)
+                faces = group.entities.grep(Sketchup::Face)
+                return group if faces.length == 6
+                bounding_box = group.bounds
+                min_pt = bounding_box.min
+                max_pt = bounding_box.max
+                all_z = min_pt.z
+                pts = [[min_pt.x, min_pt.y, all_z],
+                       [min_pt.x, max_pt.y, all_z],
+                       [max_pt.x, max_pt.y, all_z],
+                       [max_pt.x, min_pt.y, all_z]]
+                box_group = group.parent.entities.add_group
+                box_face.entities.add_face(pts)
+                box_face.reverse! if cut_face.normal.z < 0
+                box_face.pushpull(bounding_box.height)
+                attr_dict = group.attribute_dictionary(Drawer::Drawer::drawer_data_tag, true)
+                Utils::tag_entity(box_group, Drawer::Drawer::drawer_data_tag, attr_dict)  unless attr_dict&.nil?
+                box_group.transform!(group.transformation)
+                box_group
+             end
         end # class BoxMap
     end # module BoxShape
 end # module AdamExtensions
