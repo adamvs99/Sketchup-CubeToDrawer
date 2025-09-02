@@ -19,9 +19,8 @@ module AdamExtensions
         def self.tag_entity(entity, dict_name, dict)
             return unless entity&.is_a?(Sketchup::Entity)
             attribute_dict = entity.attribute_dictionary(dict_name, true)
-            unless attribute_dict&.nil?
-                dict.each {|key, value| attribute_dict[key] = value }
-            end
+            return entity if dict.nil? || attribute_dict.nil?
+            dict.each {|key, value| attribute_dict[key] = value }
             entity
         end
         # @param [Sketchup::Model] current sketchup model

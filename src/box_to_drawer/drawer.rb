@@ -47,8 +47,12 @@ module AdamExtensions
             #@param [group] the group to check
             def self.is_drawer_group?(group)
                 return false unless group.is_a?(Sketchup::Group)
-                sheet_thickness = group.get_attribute("drawer_data", "sheet_thickness")
+                sheet_thickness = group.get_attribute(Drawer.drawer_data_tag, "sheet_thickness")
                 sheet_thickness && sheet_thickness > 0.0
+            end
+
+            def self.drawer_data_tag
+                "avs_drawer_data"
             end
 
             def self.hidden_dado?
@@ -208,7 +212,7 @@ module AdamExtensions
                 # create a copy .. move to left side .. rotate 180 degrees
                 front_rect = @face_map.to_rect_copy("front")
                 @current_groups << Utils.copy_move_rotate_group(right_side_group, -front_rect.width + @@sheet_thickness, 0, 0, Z_AXIS, 180)
-            end # def self.create_side_panels
+            end # def create_side_panels
 
             def create_front_back_panels
                 # gate this function if object not valid
@@ -253,7 +257,7 @@ module AdamExtensions
                 side_rect = @face_map.to_rect_copy("left")
                 @current_groups << Utils.copy_move_rotate_group(front_group, 0, side_rect.depth - @@sheet_thickness, 0, Z_AXIS, 180)
                 model.commit_operation  # Slice Bottom Dado
-            end # def self.create_side_front_back_panels
+            end # def create_side_front_back_panels
 
             def create_bounding_group
                 # gate this function if object not valid
@@ -266,12 +270,12 @@ module AdamExtensions
                 bounding_group = model.entities.add_group
                 @current_groups.each do |g|
                     component = bounding_group.entities.add_instance(g.definition, g.transformation)
-                    Utils::tag_entity(component, "drawer_data", group_data)
+                    Utils::tag_entity(component, Drawer.drawer_data_tag, group_data)
                     g.erase!
                 end
                 @current_groups.clear
                 group_data["bounding_group"] = "drawer bounding group"
-                Utils::tag_entity(bounding_group, "drawer_data", group_data)
+                Utils::tag_entity(bounding_group, Drawer.drawer_data_tag, group_data)
                 @bounding_group = bounding_group
             end
 
