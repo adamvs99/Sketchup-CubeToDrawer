@@ -68,12 +68,6 @@ module AdamExtensions
                 @@dado_depth
             end
 
-            def self.has_group?(group)
-                @@drawers.each do |drawer|
-                    return true if drawer.current_groups.include?(group)
-                end
-                false
-            end
             def self.update
                 @@drawers.each do |drawer|
                     next unless drawer.valid?
@@ -85,21 +79,26 @@ module AdamExtensions
                 end
             end
 
-            def self.selection_to_drawers(selection, action="")
+            def self.selection_to_drawers(action="")
+                selection = Sketchup.active_model.selection
                 return if selection&.empty?
                 groups = []
+                new_groups = []
                 selection.each do |s|
-                    next unless BoxShape::BoxMap.is_aligned_box?(s)
-                    Drawer.new(s)
-                    groups << s
+                    group, group_action, new_group = BoxShape::BoxMap.is_valid_selection?(s)
+                    next if group.nil? && new_group.nil?
+                    Drawer.new(new_group.nil? ? group : new_group)
+                    groups << group if !group.nil? && group_action.include?("erase")
+                    new_groups << new_group unless new_group.nil?
                 end
-                if action.include? "erase"
-                    selection.clear
-                    groups.each {|g| g.erase!}
-                end
+                groups.each {|g| selection.remove(g); g.erase!}
+                new_groups.each {|g| g.erase!}
+                puts "drawer count: #{@@drawers.size}"
+                Drawer.update
             end
 
             def initialize(box_group)
+                puts "Drawer.initialize - group: #{box_group}"
                 @face_map = nil
                 @current_groups = []
                 @bounding_group = nil
@@ -291,7 +290,6 @@ module AdamExtensions
                 @@sheet_thickness = new_sheet_thickness
                 @@dado_thickness = new_dado_thickness
                 @@dado_depth = new_dado_depth
-                self.update
             end
 
         end # class Drawer

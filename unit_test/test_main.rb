@@ -5,7 +5,7 @@
 #  Created by Adam Silver on 7/16/25.
 #  copyright Adam Silver © 2025 all rights reserved
 
-require_relative '../src/cube_to_drawer/rectangle.rb'
+require_relative '../src/box_to_drawer/rectangle.rb'
 require_relative 'sketchup.rb'
 
 module AdamExtensions

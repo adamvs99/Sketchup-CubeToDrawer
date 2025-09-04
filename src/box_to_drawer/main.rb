@@ -23,10 +23,10 @@ module AdamExtensions
         def self.ctd_main
             Units::set_units_type
             Drawer::Drawer.initialize_units
-            Drawer::Drawer.selection_to_drawers(Sketchup.active_model.selection, "erase")
+            #Drawer::Drawer.selection_to_drawers(Sketchup.active_model.selection, "erase")
             UnitsDialog.show
             SelectObserver.install
-            Drawer::Drawer.update
+            #Drawer::Drawer.update
         end # def ctd_main
 
         unless file_loaded(__FILE__)

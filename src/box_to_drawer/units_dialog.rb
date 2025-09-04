@@ -205,6 +205,7 @@ module AdamExtensions
                     #
                 end
                 Drawer::Drawer::update_sheet_dado_values(sheet_thickness, dado_width, dado_depth)
+                Drawer::Drawer.selection_to_drawers("erase")
             end
 
             self._dialog.add_action_callback("updateHiddenDado") do |action_context, hidden_dado_checked|
