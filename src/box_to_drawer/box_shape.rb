@@ -38,8 +38,10 @@ module AdamExtensions
                 end
             end # def initialize
 
-            def self.is_aligned_box?(box_group)
+            def self.is_xyz_aligned_box?(box_group)
                 return false unless box_group&.is_a? Sketchup::Group
+                faces = box_group.entities.grep(Sketchup::Face)
+                return false unless faces.count == 6
                 face_count = 0; x_plane = 0; y_plane = 0; z_plane = 0
                 box_group.entities.grep(Sketchup::Face).each do |f|
                     face_count += 1
@@ -51,13 +53,34 @@ module AdamExtensions
                 return false unless x_plane == 2 && y_plane == 2 && z_plane == 2
                 true
             end
+            #@param [Sketchup::Group] group
+            def self.is_valid_selection?(box_group)
+                return [box_group, "erase", nil] if BoxMap::is_xyz_aligned_box?(box_group)
+                return [nil, "ignore", nil] unless Drawer::Drawer.is_drawer_group?(group)
+                bounding_box = group.bounds
+                min_pt = bounding_box.min
+                max_pt = bounding_box.max
+                all_z = min_pt.z
+                pts = [[min_pt.x, min_pt.y, all_z],
+                       [min_pt.x, max_pt.y, all_z],
+                       [max_pt.x, max_pt.y, all_z],
+                       [max_pt.x, min_pt.y, all_z]]
+                new_box_group = group.parent.entities.add_group
+                box_face = new_box_group.entities.add_face(pts)
+                box_face.reverse! if cut_face.normal.z < 0
+                box_face.pushpull(bounding_box.height)
+                attr_dict = box_group.attribute_dictionary(Drawer::Drawer::drawer_data_tag, true)
+                Utils::tag_entity(box_group, Drawer::Drawer::drawer_data_tag, attr_dict)
+                box_group.transform!(group.transformation)
+                [box_group, "erase", new_box_group]
+            end
 
             def valid?
-                #@_box_map.key?("bottom") && @_box_map.key?("top") &&
-                #@_box_map.key?("left") && @_box_map.key?("right") &&
-                #@_box_map.key?("front") && @_box_map.key?("back")
+                keys = ["bottom", "top", "left", "right", "front", "back"]
+                return false unless keys.all? {|k| @_box_map.key?(k)}
                 @_box_map.size == 6
             end
+
             def _prnt
                 @_box_map.each do |face, data|
                     puts face.ljust(8)   +   (data[:face_points].points[0]).to_s.ljust(22)
@@ -106,27 +129,6 @@ module AdamExtensions
                 rect.copy(x, y, z)
             end
 
-            #@param [Sketchup::Group] group
-            def self.bounding_box_to_box_group(group)
-                faces = group.entities.grep(Sketchup::Face)
-                return group if faces.length == 6
-                bounding_box = group.bounds
-                min_pt = bounding_box.min
-                max_pt = bounding_box.max
-                all_z = min_pt.z
-                pts = [[min_pt.x, min_pt.y, all_z],
-                       [min_pt.x, max_pt.y, all_z],
-                       [max_pt.x, max_pt.y, all_z],
-                       [max_pt.x, min_pt.y, all_z]]
-                box_group = group.parent.entities.add_group
-                box_face.entities.add_face(pts)
-                box_face.reverse! if cut_face.normal.z < 0
-                box_face.pushpull(bounding_box.height)
-                attr_dict = group.attribute_dictionary(Drawer::Drawer::drawer_data_tag, true)
-                Utils::tag_entity(box_group, Drawer::Drawer::drawer_data_tag, attr_dict)  unless attr_dict&.nil?
-                box_group.transform!(group.transformation)
-                box_group
-             end
         end # class BoxMap
     end # module BoxShape
 end # module AdamExtensions
