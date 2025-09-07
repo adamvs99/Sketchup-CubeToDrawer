@@ -329,7 +329,7 @@ module AdamExtensions
             #@param [Sketchup::Transformation] transformation
             #@return [GlobalRect]
             def initialize(face, transformation)
-                return super(nil) unless face&.is_a?(Sketchup::Face)
+                return super(nil) unless face&.is_a? Sketchup::Face
                 global_points = face.vertices.map {|vertex| vertex.position.transform(transformation)}
                 super(global_points)
             end # def initialize
