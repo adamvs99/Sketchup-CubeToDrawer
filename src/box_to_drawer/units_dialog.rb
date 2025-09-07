@@ -11,18 +11,16 @@ require_relative 'units'
 module AdamExtensions
     module UnitsDialog
         class << self
-            attr_accessor :_dialog
+            attr_accessor :_dialog, :_selected_drawer_data
         end
         self._dialog = nil
+        self._selected_drawer_data = {:sheet_thickness=>[], :dado_thickness=>[], :dado_depth=>[], :hidden_dado=>false}
 
         def self.show
             # re-show show if already instantiated but not visible
             # makes this a singleton...
-            unless self._dialog.nil?
-                return if self._dialog.visible?
-                self._dialog.show
-                return
-            end
+            return if self._dialog&.visible?
+            self._dialog.show unless self._dialog.nil?
 
             html = <<-HTML
             <!DOCTYPE html>
@@ -85,7 +83,7 @@ module AdamExtensions
                         </p>
                        
                         <p>
-                            <button onclick="sendDataToSketchUp()" tabindex="0">Update</button>
+                            <button onclick="sendDataToSketchUp()" id="update_button" tabindex="0">Update</button>
                         </p>
                       </div>
                       <div class="images">
@@ -102,13 +100,18 @@ module AdamExtensions
                             sketchup.updateUnitsDialogValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
                         }
                         
-                        function inputNumberFormat(elementID) {
+                         function inputNumberFormat(elementID) {
                             const inputElement = document.getElementById(elementID);
-                            const inputValue = inputElement.value;
+                            var inputValue = inputElement.value;
+                            inputValue = inputValue.trim();
                             const numberValue = parseFloat(inputValue);
                             if (!isNaN(numberValue)) {
+                                inputElement.style = "color: black;"
                                 inputElement.value = numberValue.toFixed(2);
+                                document.getElementById("update_button").disabled = false;
                             } else {
+                                inputElement.style = "color: red;"
+                                document.getElementById("update_button").disabled = true;
                                 console.warn("Input is not a valid number.");
                             }
                        }
@@ -173,6 +176,11 @@ module AdamExtensions
             }
 
             self._dialog = UI::HtmlDialog.new(options)
+            self._dialog.set_on_closed {
+                # This block will be called when the user closes the dialog
+                # by clicking the X, or by using the ESC key.
+                #puts "The user closed the dialog."
+            }
             self._dialog.set_html(html)
             self._dialog.set_size(290, 540)
 
@@ -257,5 +265,26 @@ module AdamExtensions
             self._dialog.show # Display the dialog
             # Ruby callback that JavaScript can trigger
         end # def self.show
+
+        #@param [Sketchup::Group]
+        def self.add_unique_selected_drawer_data(group)
+            return false unless Drawer::Drawer::is_drawer_group?(group)
+            sheet_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "sheet_thickness")
+            dado_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "dado_thickness")
+            dado_depth = group.get_attribute(Drawer::Drawer::drawer_data_tag, "dado_depth")
+            return false unless sheet_thickness&.positive? && dado_thickness&.positive? && dado_depth&.positive?
+            UnitsDialog._selected_drawer_data[:sheet_thickness] << sheet_thickness unless UnitsDialog._selected_drawer_data[:sheet_thickness].include? sheet_thickness
+            UnitsDialog._selected_drawer_data[:dado_thickness] << dado_thickness unless UnitsDialog._selected_drawer_data[:dado_thickness].include? dado_thickness
+            UnitsDialog._selected_drawer_data[:dado_depth] << dado_depth unless UnitsDialog._selected_drawer_data[:dado_depth].include? dado_depth
+            true
+        end
+
+        def self.clear_selected_drawer_data
+            UnitsDialog._selected_drawer_data[:sheet_thickness].clear
+            UnitsDialog._selected_drawer_data[:dado_thickness].clear
+            UnitsDialog._selected_drawer_data[:dado_depth].clear
+        end
+
     end # module UnitsDialog
+
 end # module AdamExtensions
