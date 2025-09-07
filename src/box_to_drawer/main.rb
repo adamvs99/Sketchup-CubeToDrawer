@@ -24,8 +24,8 @@ module AdamExtensions
             Units::set_units_type
             Drawer::Drawer.initialize_units
             #Drawer::Drawer.selection_to_drawers(Sketchup.active_model.selection, "erase")
-            UnitsDialog.show
-            SelectObserver.install
+            UnitsDialog::show
+            SelectObserver::install
             #Drawer::Drawer.update
         end # def ctd_main
 
