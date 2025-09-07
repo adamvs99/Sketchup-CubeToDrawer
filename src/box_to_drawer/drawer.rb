@@ -15,17 +15,17 @@ module AdamExtensions
     module Drawer
         class Drawer
 
+            @@units_inited = false
             @@sheet_thickness = 0.0
             @@dado_thickness = 0.0
             @@dado_depth = 0.0
             @@hidden_dado = false
             @@drawers = []
-
             def self.initialize_units
                 # this gets called when a drawer is created
                 # gate this if already there are already drawers
                 # created
-                return unless @@drawers.empty?
+                return if @@units_inited
                 case Units::units_type
                 when 'imperial'
                     @@sheet_thickness = 0.75
@@ -42,13 +42,7 @@ module AdamExtensions
                 else
                     err = true
                 end #case Units::unit_type
-            end
-
-            #@param [group] the group to check
-            def self.is_drawer_group?(group)
-                return false unless group.is_a?(Sketchup::Group)
-                sheet_thickness = group.get_attribute(Drawer.drawer_data_tag, "sheet_thickness")
-                sheet_thickness && sheet_thickness > 0.0
+                @@units_inited = true
             end
 
             def self.drawer_data_tag
@@ -68,6 +62,15 @@ module AdamExtensions
                 @@dado_depth
             end
 
+            #@param [group] the group to check
+            #@param [group] the group to check
+            def self.is_drawer_group?(group)
+                return false unless group.is_a?(Sketchup::Group)
+                sheet_thickness = group.get_attribute(Drawer.drawer_data_tag, "sheet_thickness")
+                sheet_thickness&.positive?
+            end
+
+
             def self.update
                 @@drawers.each do |drawer|
                     next unless drawer.valid?
@@ -77,6 +80,7 @@ module AdamExtensions
                     drawer.create_front_back_panels
                     drawer.create_bounding_group
                 end
+                @@drawers.clear
             end
 
             def self.selection_to_drawers(action="")
@@ -86,14 +90,13 @@ module AdamExtensions
                 new_groups = []
                 selection.each do |s|
                     group, group_action, new_group = BoxShape::BoxMap.is_valid_selection?(s)
-                    next if group.nil? && new_group.nil?
+                    next unless group || new_group
                     Drawer.new(new_group.nil? ? group : new_group)
-                    groups << group if !group.nil? && group_action.include?("erase")
-                    new_groups << new_group unless new_group.nil?
+                    groups << group if group && group_action.include?("erase")
+                    new_groups << new_group if new_group
                 end
                 groups.each {|g| selection.remove(g); g.erase!}
                 new_groups.each {|g| g.erase!}
-                puts "drawer count: #{@@drawers.size}"
                 Drawer.update
             end
 
@@ -102,7 +105,7 @@ module AdamExtensions
                 @face_map = nil
                 @current_groups = []
                 @bounding_group = nil
-                return unless box_group.is_a?(Sketchup::Group)
+                return unless box_group.is_a? Sketchup::Group
                 @face_map = BoxShape::BoxMap.new(box_group)
                 @@drawers << self if valid?
             end
