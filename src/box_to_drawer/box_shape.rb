@@ -56,8 +56,8 @@ module AdamExtensions
             #@param [Sketchup::Group] group
             def self.is_valid_selection?(box_group)
                 return [box_group, "erase", nil] if BoxMap::is_xyz_aligned_box?(box_group)
-                return [nil, "ignore", nil] unless Drawer::Drawer.is_drawer_group?(group)
-                bounding_box = group.bounds
+                return [nil, "ignore", nil] unless Drawer::Drawer.is_drawer_group?(box_group)
+                bounding_box = box_group.bounds
                 min_pt = bounding_box.min
                 max_pt = bounding_box.max
                 all_z = min_pt.z
@@ -65,13 +65,13 @@ module AdamExtensions
                        [min_pt.x, max_pt.y, all_z],
                        [max_pt.x, max_pt.y, all_z],
                        [max_pt.x, min_pt.y, all_z]]
-                new_box_group = group.parent.entities.add_group
+                new_box_group = box_group.parent.entities.add_group
                 box_face = new_box_group.entities.add_face(pts)
-                box_face.reverse! if cut_face.normal.z < 0
-                box_face.pushpull(bounding_box.height)
+                box_face.reverse! if box_face.normal.z < 0
+                box_face.pushpull(bounding_box.depth)
                 attr_dict = box_group.attribute_dictionary(Drawer::Drawer::drawer_data_tag, true)
                 Utils::tag_entity(box_group, Drawer::Drawer::drawer_data_tag, attr_dict)
-                box_group.transform!(group.transformation)
+                new_box_group.transform!(box_group.transformation)
                 [box_group, "erase", new_box_group]
             end
 
