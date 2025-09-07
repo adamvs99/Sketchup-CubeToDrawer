@@ -17,7 +17,7 @@ module AdamExtensions
         # @param [Hash] hash of key/value pairs to be added to the attribute dictionary
         # @return [Object] target entity
         def self.tag_entity(entity, dict_name, dict)
-            return unless entity&.is_a?(Sketchup::Entity)
+            return unless entity&.is_a? Sketchup::Entity
             attribute_dict = entity.attribute_dictionary(dict_name, true)
             return entity if dict.nil? || attribute_dict.nil?
             dict.each {|key, value| attribute_dict[key] = value }
