@@ -26,11 +26,11 @@ module AdamExtensions
                 selection_count = 0
                 model = Sketchup.active_model
                 model.selection.each do |e|
-                    next unless UnitsDialog::add_unique_selected_drawer_data(e)
-                    UnitsDialog::show
+                    next unless DimensionsDialog::add_unique_selected_drawer_data(e)
+                    DimensionsDialog::show
                     selection_count += 1
                 end
-                UnitsDialog::close if selection_count == 0
+                DimensionsDialog::close if selection_count == 0
             end
 
         end # class SelObserver

@@ -82,7 +82,7 @@ module AdamExtensions
                     drawer.create_bounding_group
                 end
                 @@drawers.clear
-                UnitsDialog::close
+                DimensionsDialog::close
             end
 
             def self.selection_to_drawers(action="")

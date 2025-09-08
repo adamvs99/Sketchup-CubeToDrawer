@@ -9,7 +9,7 @@ require_relative 'drawer'
 require_relative 'units'
 
 module AdamExtensions
-    module UnitsDialog
+    module DimensionsDialog
         class << self
             attr_accessor :_dialog, :_selected_drawer_data
         end
@@ -97,7 +97,7 @@ module AdamExtensions
                             var dadoWidth = document.getElementById('dado_width').value;
                             var dadoDepth = document.getElementById('dado_depth').value;
 
-                            sketchup.updateUnitsDialogValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
+                            sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
                         }
                         
                          function inputNumberFormat(elementID) {
@@ -189,7 +189,7 @@ module AdamExtensions
             end
 
             # Ruby callback that JavaScript can trigger
-            self._dialog.add_action_callback("updateUnitsDialogValues") do |action_context, sheet_thickness, dado_width, dado_depth|
+            self._dialog.add_action_callback("updateDimensionsValues") do |action_context, sheet_thickness, dado_width, dado_depth|
                 valid_values = false
                 begin
                     sheet_thickness = Float(sheet_thickness)
@@ -277,18 +277,18 @@ module AdamExtensions
             dado_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "dado_thickness")
             dado_depth = group.get_attribute(Drawer::Drawer::drawer_data_tag, "dado_depth")
             return false unless sheet_thickness&.positive? && dado_thickness&.positive? && dado_depth&.positive?
-            UnitsDialog._selected_drawer_data[:sheet_thickness] << sheet_thickness unless UnitsDialog._selected_drawer_data[:sheet_thickness].include? sheet_thickness
-            UnitsDialog._selected_drawer_data[:dado_thickness] << dado_thickness unless UnitsDialog._selected_drawer_data[:dado_thickness].include? dado_thickness
-            UnitsDialog._selected_drawer_data[:dado_depth] << dado_depth unless UnitsDialog._selected_drawer_data[:dado_depth].include? dado_depth
+            DimensionsDialog._selected_drawer_data[:sheet_thickness] << sheet_thickness unless DimensionsDialog._selected_drawer_data[:sheet_thickness].include? sheet_thickness
+            DimensionsDialog._selected_drawer_data[:dado_thickness] << dado_thickness unless DimensionsDialog._selected_drawer_data[:dado_thickness].include? dado_thickness
+            DimensionsDialog._selected_drawer_data[:dado_depth] << dado_depth unless DimensionsDialog._selected_drawer_data[:dado_depth].include? dado_depth
             true
         end
 
         def self.clear_selected_drawer_data
-            UnitsDialog._selected_drawer_data[:sheet_thickness].clear
-            UnitsDialog._selected_drawer_data[:dado_thickness].clear
-            UnitsDialog._selected_drawer_data[:dado_depth].clear
+            DimensionsDialog._selected_drawer_data[:sheet_thickness].clear
+            DimensionsDialog._selected_drawer_data[:dado_thickness].clear
+            DimensionsDialog._selected_drawer_data[:dado_depth].clear
         end
 
-    end # module UnitsDialog
+    end # module DimensionsDialog
 
 end # module AdamExtensions
