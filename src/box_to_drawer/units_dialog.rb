@@ -19,7 +19,7 @@ module AdamExtensions
         def self.show
             # re-show show if already instantiated but not visible
             # makes this a singleton...
-            return if self._dialog&.visible?
+            return unless self._dialog&.visible?
             self._dialog.show unless self._dialog.nil?
 
             html = <<-HTML
@@ -213,7 +213,7 @@ module AdamExtensions
                     #
                 end
                 Drawer::Drawer::update_sheet_dado_values(sheet_thickness, dado_width, dado_depth)
-                Drawer::Drawer.selection_to_drawers("erase")
+                Drawer::Drawer.selection_to_drawers("erase,update")
             end
 
             self._dialog.add_action_callback("updateHiddenDado") do |action_context, hidden_dado_checked|
@@ -266,6 +266,10 @@ module AdamExtensions
             # Ruby callback that JavaScript can trigger
         end # def self.show
 
+        def self.close
+            self._dialog.close if self._dialog
+            self._dialog = nil
+        end
         #@param [Sketchup::Group]
         def self.add_unique_selected_drawer_data(group)
             return false unless Drawer::Drawer::is_drawer_group?(group)

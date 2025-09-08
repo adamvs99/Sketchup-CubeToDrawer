@@ -10,6 +10,7 @@ require_relative 'box_shape'
 require_relative 'rectangle'
 require_relative 'units'
 require_relative 'utils'
+require_relative 'units_dialog'
 
 module AdamExtensions
     module Drawer
@@ -81,6 +82,7 @@ module AdamExtensions
                     drawer.create_bounding_group
                 end
                 @@drawers.clear
+                UnitsDialog::close
             end
 
             def self.selection_to_drawers(action="")
@@ -91,13 +93,16 @@ module AdamExtensions
                 selection.each do |s|
                     group, group_action, new_group = BoxShape::BoxMap.is_valid_selection?(s)
                     next unless group || new_group
-                    Drawer.new(new_group.nil? ? group : new_group)
+                    Drawer.new(new_group.nil? ? group : new_group) unless action.include?("test")
                     groups << group if group && group_action.include?("erase")
                     new_groups << new_group if new_group
                 end
+                # if just 'testing' then return with any other action
+                return false if action.include?("test") && groups.size + new_groups.size == 0
                 groups.each {|g| selection.remove(g); g.erase!}
                 new_groups.each {|g| g.erase!}
                 Drawer.update
+                true
             end
 
             def initialize(box_group)
