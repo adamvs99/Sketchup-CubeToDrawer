@@ -98,7 +98,8 @@ module AdamExtensions
                     new_groups << new_group if new_group
                 end
                 # if just 'testing' then return with any other action
-                return false if action.include?("test") && groups.size + new_groups.size == 0
+                has_groups = groups.size + new_groups.size > 0
+                return has_groups if action.include?("test")
                 groups.each {|g| selection.remove(g); g.erase!}
                 new_groups.each {|g| g.erase!}
                 Drawer.update
