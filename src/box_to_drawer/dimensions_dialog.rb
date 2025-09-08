@@ -1,5 +1,5 @@
 #
-#  units_dialog.rb
+#  dimensions_dialog.rb
 #
 #
 #  Created by Adam Silver on 08/14/25.
@@ -168,7 +168,7 @@ module AdamExtensions
 
             options = {
                 :dialog_title => "Drawer Parameters",
-                :preferences_key => "units_dialog.dialog", # Unique key for persistence
+                :preferences_key => "dimensions_dialog.dialog", # Unique key for persistence
                 :style => UI::HtmlDialog::STYLE_UTILITY, #  For a standard dialog appearance
                 #:width => 300,
                 #:height => 600,

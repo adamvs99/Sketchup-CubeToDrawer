@@ -9,7 +9,7 @@ require 'sketchup.rb'
 require 'extensions.rb'
 require_relative 'drawer'
 require_relative 'units'
-require_relative 'units_dialog'
+require_relative 'dimensions_dialog'
 require_relative 'sel_observer'
 
 module AdamExtensions

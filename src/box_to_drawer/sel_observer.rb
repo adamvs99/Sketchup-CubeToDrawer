@@ -8,7 +8,7 @@
 require 'sketchup.rb'
 require 'singleton'
 require_relative 'drawer'
-require_relative 'units_dialog'
+require_relative 'dimensions_dialog'
 
 
 module AdamExtensions

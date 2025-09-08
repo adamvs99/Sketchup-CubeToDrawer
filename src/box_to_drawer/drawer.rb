@@ -10,7 +10,7 @@ require_relative 'box_shape'
 require_relative 'rectangle'
 require_relative 'units'
 require_relative 'utils'
-require_relative 'units_dialog'
+require_relative 'dimensions_dialog'
 
 module AdamExtensions
     module Drawer
