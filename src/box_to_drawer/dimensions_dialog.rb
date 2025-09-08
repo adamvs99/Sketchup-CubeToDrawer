@@ -19,8 +19,8 @@ module AdamExtensions
         def self.show
             # re-show show if already instantiated but not visible
             # makes this a singleton...
-            return unless self._dialog&.visible?
-            self._dialog.show unless self._dialog.nil?
+            #return unless self._dialog&.visible?
+            #self._dialog&.show
 
             html = <<-HTML
             <!DOCTYPE html>
@@ -67,9 +67,9 @@ module AdamExtensions
                             <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units" readonly="readonly" tabindex="-1">
                         </p>
                         <p>
-                           <label for="dado_width">Dado Thickness:</label>
-                           <input class="center_editable" type="text" id="dado_width" name="dado_width" tabindex="2">
-                           <input class="unit_noneditable" type="text" id="dado_width_units" name="dado_width_units" readonly="readonly" tabindex="-1">
+                           <label for="dado_thickness">Dado Thickness:</label>
+                           <input class="center_editable" type="text" id="dado_thickness" name="dado_thickness" tabindex="2">
+                           <input class="unit_noneditable" type="text" id="dado_thickness_units" name="dado_thickness_units" readonly="readonly" tabindex="-1">
                         </p>
                          <p>
                            <label for="dado_depth">Dado Depth:</label>
@@ -88,13 +88,13 @@ module AdamExtensions
                       </div>
                       <div class="images">
                           <img id="sheet_thickness_img" alt="sheetThickness">
-                          <img id="dado_width_img" alt="dadoWidth">
+                          <img id="dado_thickness_img" alt="dadoWidth">
                           <img id="dado_depth_img" alt="dadoDepth">
                       </div>
                       <script>
                         function sendDataToSketchUp() {
                             var sheetThickness = document.getElementById('sheet_thickness').value;
-                            var dadoWidth = document.getElementById('dado_width').value;
+                            var dadoWidth = document.getElementById('dado_thickness').value;
                             var dadoDepth = document.getElementById('dado_depth').value;
 
                             sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
@@ -125,12 +125,12 @@ module AdamExtensions
                             document.getElementById("sheet_thickness_img").style.display="none";
                             inputNumberFormat("sheet_thickness");
                         });
-                        document.getElementById("dado_width").addEventListener('focusin', function() {sketchup.putstr("dado_width in focus")
-                            document.getElementById("dado_width_img").style.display="block";
+                        document.getElementById("dado_thickness").addEventListener('focusin', function() {sketchup.putstr("dado_thickness in focus")
+                            document.getElementById("dado_thickness_img").style.display="block";
                          });
-                        document.getElementById("dado_width").addEventListener('focusout', function() {
-                            document.getElementById("dado_width_img").style.display="none";
-                            inputNumberFormat("dado_width");
+                        document.getElementById("dado_thickness").addEventListener('focusout', function() {
+                            document.getElementById("dado_thickness_img").style.display="none";
+                            inputNumberFormat("dado_thickness");
                         });
                         document.getElementById("dado_depth").addEventListener('focusin', function() {
                             document.getElementById("dado_depth_img").style.display = "block";
@@ -145,7 +145,7 @@ module AdamExtensions
                                 event.preventDefault(); // Prevent non-numeric characters
                             }
                         });
-                        document.getElementById("dado_width").addEventListener('keypress', function(event) {
+                        document.getElementById("dado_thickness").addEventListener('keypress', function(event) {
                             if (!/[0-9.]/.test(event.key)) {
                                 event.preventDefault(); // Prevent non-numeric characters
                             }
@@ -182,18 +182,18 @@ module AdamExtensions
                 #puts "The user closed the dialog."
             }
             self._dialog.set_html(html)
-            self._dialog.set_size(290, 540)
+            self._dialog.set_size(360, 540)
 
             self._dialog.add_action_callback("putstr") do |action_context, str|
                 puts str
             end
 
             # Ruby callback that JavaScript can trigger
-            self._dialog.add_action_callback("updateDimensionsValues") do |action_context, sheet_thickness, dado_width, dado_depth|
+            self._dialog.add_action_callback("updateDimensionsValues") do |action_context, sheet_thickness, dado_thickness, dado_depth|
                 valid_values = false
                 begin
                     sheet_thickness = Float(sheet_thickness)
-                    dado_width = Float(dado_width)
+                    dado_thickness = Float(dado_thickness)
                     dado_depth = Float(dado_depth)
                     valid_values = true
                 rescue
@@ -203,16 +203,16 @@ module AdamExtensions
                 case Units::units_type
                 when "metric"
                     sheet_thickness = Units::in_unit(sheet_thickness)
-                    dado_width = Units::in_unit(dado_width)
+                    dado_thickness = Units::in_unit(dado_thickness)
                     dado_depth = Units::in_unit(dado_depth)
                 when "cm_metric"
                     sheet_thickness = Units::in_unit(sheet_thickness)
-                    dado_width = Units::in_unit(dado_width)
+                    dado_thickness = Units::in_unit(dado_thickness)
                     dado_depth = Units::in_unit(dado_depth)
                 else
                     #
                 end
-                Drawer::Drawer::update_sheet_dado_values(sheet_thickness, dado_width, dado_depth)
+                Drawer::Drawer::update_sheet_dado_values(sheet_thickness, dado_thickness, dado_depth)
                 Drawer::Drawer.selection_to_drawers("erase,update")
             end
 
@@ -222,42 +222,52 @@ module AdamExtensions
 
             self._dialog.add_action_callback("dom_loaded") do |action_context|
                 # Note: internal unit type is always "imperial"
-                sheet_thickness = Drawer::Drawer.sheet_thickness
-                dado_width = Drawer::Drawer.dado_thickness
-                dado_depth = Drawer::Drawer.dado_depth
+                convert = lambda {|nums, default|
+                    range = []
+                    range << default if nums.empty?
+                    range << nums.first if nums.size == 1
+                    nums.size > 1 ? nums.minmax : range
+                }
+                _to_s = lambda {|range|
+                    range.size == 1 ? sprintf("%.2f", range.first) : sprintf("%.2f..%.2f", range.first, range.last)
+                }
+
+                sheet_thickness = convert.call(DimensionsDialog._selected_drawer_data[:sheet_thickness], Drawer::Drawer.sheet_thickness)
+                dado_thickness = convert.call(DimensionsDialog._selected_drawer_data[:dado_thickness], Drawer::Drawer.dado_thickness)
+                dado_depth = convert.call(DimensionsDialog._selected_drawer_data[:dado_depth], Drawer::Drawer.dado_depth)
                 case Units::units_type
                 when "imperial"
                     units = "in"
-                    sheet_thickness = sprintf("%.2f", sheet_thickness)
-                    dado_width = sprintf("%.2f", dado_width)
-                    dado_depth = sprintf("%.2f", dado_depth)
+                    sheet_thickness = sheet_thickness.map {|n| Units::in_unit(n, "imperial")}
+                    dado_thickness = dado_thickness.map {|n| Units::in_unit(n, "imperial")}
+                    dado_depth = dado_depth.map {|n| Units::in_unit(n, "imperial")}
                 when "metric"
                     units = "mm"
-                    sheet_thickness = sprintf("%.2f", Units::mm_unit(sheet_thickness, "imperial"))
-                    dado_width = sprintf("%.2f", Units::mm_unit(dado_width, "imperial"))
-                    dado_depth = sprintf("%.2f", Units::mm_unit(dado_depth, "imperial"))
+                    sheet_thickness = sheet_thickness.map {|n| Units::mm_unit(n, "imperial")}
+                    dado_thickness = dado_thickness.map {|n| Units::mm_unit(n, "imperial")}
+                    dado_depth = dado_depth.map {|n| Units::mm_unit(n, "imperial")}
                 when "cm_metric"
-                    units = "mm"
-                    sheet_thickness = sprintf("%.2f", Units::cm_unit(sheet_thickness, "imperial"))
-                    dado_width = sprintf("%.2f", Units::cm_unit(dado_width, "imperial"))
-                    dado_depth = sprintf("%.2f", Units::cm_unit(dado_depth, "imperial"))
+                    units = "cm"
+                    sheet_thickness = sheet_thickness.map {|n| Units::cm_unit(n, "imperial")}
+                    dado_thickness = dado_thickness.map {|n| Units::cm_unit(n, "imperial")}
+                    dado_depth = dado_depth.map {|n| Units::cm_unit(n, "imperial")}
                 else
                     #
                 end
-                self._dialog.execute_script("document.getElementById('sheet_thickness').value = '#{sheet_thickness}';")
-                self._dialog.execute_script("document.getElementById('dado_width').value = '#{dado_width}';")
-                self._dialog.execute_script("document.getElementById('dado_depth').value = '#{dado_depth}';")
+                self._dialog.execute_script("document.getElementById('sheet_thickness').value = '#{_to_s.call(sheet_thickness)}';")
+                self._dialog.execute_script("document.getElementById('dado_thickness').value = '#{_to_s.call(dado_thickness)}';")
+                self._dialog.execute_script("document.getElementById('dado_depth').value = '#{_to_s.call(dado_depth)}';")
                 self._dialog.execute_script("document.getElementById('sheet_units').value = '#{units}';")
-                self._dialog.execute_script("document.getElementById('dado_width_units').value = '#{units}';")
+                self._dialog.execute_script("document.getElementById('dado_thickness_units').value = '#{units}';")
                 self._dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
 
                 # set the image path
                 base_dir = __dir__.sub("box_to_drawer", "")
                 sheet_thick_image = File.join(base_dir, "/resources", "sheetThickness.svg")
-                dado_width_image = File.join(base_dir, "/resources", "dadoWidth.svg")
+                dado_thickness_image = File.join(base_dir, "/resources", "dadoWidth.svg")
                 dado_depth_image = File.join(base_dir, "/resources", "dadoDepth.svg")
                 self._dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
-                self._dialog.execute_script("document.getElementById('dado_width_img').src = '#{dado_width_image}';")
+                self._dialog.execute_script("document.getElementById('dado_thickness_img').src = '#{dado_thickness_image}';")
                 self._dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
             end
 
@@ -267,7 +277,7 @@ module AdamExtensions
         end # def self.show
 
         def self.close
-            self._dialog.close if self._dialog
+            self._dialog&.close
             self._dialog = nil
         end
         #@param [Sketchup::Group]
