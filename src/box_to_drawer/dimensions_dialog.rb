@@ -17,10 +17,6 @@ module AdamExtensions
         self._selected_drawer_data = {:sheet_thickness=>[], :dado_thickness=>[], :dado_depth=>[], :hidden_dado=>false}
 
         def self.show
-            # re-show show if already instantiated but not visible
-            # makes this a singleton...
-            #return unless self._dialog&.visible?
-            #self._dialog&.show
 
             html = <<-HTML
             <!DOCTYPE html>
@@ -36,7 +32,7 @@ module AdamExtensions
                         }
                         .center_editable {
                           text-align: center;
-                          width: 60px;
+                          width: 100px;
                         }
                         .unit_noneditable {
                           text-align: left;
@@ -175,7 +171,7 @@ module AdamExtensions
                 :resizable => true
             }
 
-            self._dialog = UI::HtmlDialog.new(options)
+            self._dialog = UI::HtmlDialog.new(options) if self._dialog.nil?
             self._dialog.set_on_closed {
                 # This block will be called when the user closes the dialog
                 # by clicking the X, or by using the ESC key.
@@ -221,54 +217,7 @@ module AdamExtensions
             end
 
             self._dialog.add_action_callback("dom_loaded") do |action_context|
-                # Note: internal unit type is always "imperial"
-                convert = lambda {|nums, default|
-                    range = []
-                    range << default if nums.empty?
-                    range << nums.first if nums.size == 1
-                    nums.size > 1 ? nums.minmax : range
-                }
-                _to_s = lambda {|range|
-                    range.size == 1 ? sprintf("%.2f", range.first) : sprintf("%.2f..%.2f", range.first, range.last)
-                }
-
-                sheet_thickness = convert.call(DimensionsDialog._selected_drawer_data[:sheet_thickness], Drawer::Drawer.sheet_thickness)
-                dado_thickness = convert.call(DimensionsDialog._selected_drawer_data[:dado_thickness], Drawer::Drawer.dado_thickness)
-                dado_depth = convert.call(DimensionsDialog._selected_drawer_data[:dado_depth], Drawer::Drawer.dado_depth)
-                case Units::units_type
-                when "imperial"
-                    units = "in"
-                    sheet_thickness = sheet_thickness.map {|n| Units::in_unit(n, "imperial")}
-                    dado_thickness = dado_thickness.map {|n| Units::in_unit(n, "imperial")}
-                    dado_depth = dado_depth.map {|n| Units::in_unit(n, "imperial")}
-                when "metric"
-                    units = "mm"
-                    sheet_thickness = sheet_thickness.map {|n| Units::mm_unit(n, "imperial")}
-                    dado_thickness = dado_thickness.map {|n| Units::mm_unit(n, "imperial")}
-                    dado_depth = dado_depth.map {|n| Units::mm_unit(n, "imperial")}
-                when "cm_metric"
-                    units = "cm"
-                    sheet_thickness = sheet_thickness.map {|n| Units::cm_unit(n, "imperial")}
-                    dado_thickness = dado_thickness.map {|n| Units::cm_unit(n, "imperial")}
-                    dado_depth = dado_depth.map {|n| Units::cm_unit(n, "imperial")}
-                else
-                    #
-                end
-                self._dialog.execute_script("document.getElementById('sheet_thickness').value = '#{_to_s.call(sheet_thickness)}';")
-                self._dialog.execute_script("document.getElementById('dado_thickness').value = '#{_to_s.call(dado_thickness)}';")
-                self._dialog.execute_script("document.getElementById('dado_depth').value = '#{_to_s.call(dado_depth)}';")
-                self._dialog.execute_script("document.getElementById('sheet_units').value = '#{units}';")
-                self._dialog.execute_script("document.getElementById('dado_thickness_units').value = '#{units}';")
-                self._dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
-
-                # set the image path
-                base_dir = __dir__.sub("box_to_drawer", "")
-                sheet_thick_image = File.join(base_dir, "/resources", "sheetThickness.svg")
-                dado_thickness_image = File.join(base_dir, "/resources", "dadoWidth.svg")
-                dado_depth_image = File.join(base_dir, "/resources", "dadoDepth.svg")
-                self._dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
-                self._dialog.execute_script("document.getElementById('dado_thickness_img').src = '#{dado_thickness_image}';")
-                self._dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
+                self._update_dialog_inputs
             end
 
             self._dialog.set_position(300, 300) # Center the self._dialog on the screen
@@ -276,12 +225,62 @@ module AdamExtensions
             # Ruby callback that JavaScript can trigger
         end # def self.show
 
+        def self._update_dialog_inputs
+            # Note: internal unit type is always "imperial"
+            convert = lambda {|nums, default|
+                range = []
+                range << default if nums.empty?
+                range << nums.first if nums.size == 1
+                nums.size > 1 ? nums.minmax : range
+            }
+            _to_s = lambda {|range|
+                range.size == 1 ? sprintf("%.2f", range.first) : sprintf("%.2f..%.2f", range.first, range.last)
+            }
+
+            sheet_thickness = convert.call(DimensionsDialog._selected_drawer_data[:sheet_thickness], Drawer::Drawer.sheet_thickness)
+            dado_thickness = convert.call(DimensionsDialog._selected_drawer_data[:dado_thickness], Drawer::Drawer.dado_thickness)
+            dado_depth = convert.call(DimensionsDialog._selected_drawer_data[:dado_depth], Drawer::Drawer.dado_depth)
+            case Units::units_type
+            when "imperial"
+                units = "in"
+                sheet_thickness = sheet_thickness.map {|n| Units::in_unit(n, "imperial")}
+                dado_thickness = dado_thickness.map {|n| Units::in_unit(n, "imperial")}
+                dado_depth = dado_depth.map {|n| Units::in_unit(n, "imperial")}
+            when "metric"
+                units = "mm"
+                sheet_thickness = sheet_thickness.map {|n| Units::mm_unit(n, "imperial")}
+                dado_thickness = dado_thickness.map {|n| Units::mm_unit(n, "imperial")}
+                dado_depth = dado_depth.map {|n| Units::mm_unit(n, "imperial")}
+            when "cm_metric"
+                units = "cm"
+                sheet_thickness = sheet_thickness.map {|n| Units::cm_unit(n, "imperial")}
+                dado_thickness = dado_thickness.map {|n| Units::cm_unit(n, "imperial")}
+                dado_depth = dado_depth.map {|n| Units::cm_unit(n, "imperial")}
+            else
+                #
+            end
+            self._dialog.execute_script("document.getElementById('sheet_thickness').value = '#{_to_s.call(sheet_thickness)}';")
+            self._dialog.execute_script("document.getElementById('dado_thickness').value = '#{_to_s.call(dado_thickness)}';")
+            self._dialog.execute_script("document.getElementById('dado_depth').value = '#{_to_s.call(dado_depth)}';")
+            self._dialog.execute_script("document.getElementById('sheet_units').value = '#{units}';")
+            self._dialog.execute_script("document.getElementById('dado_thickness_units').value = '#{units}';")
+            self._dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
+
+            # set the image path
+            base_dir = __dir__.sub("box_to_drawer", "")
+            sheet_thick_image = File.join(base_dir, "/resources", "sheetThickness.svg")
+            dado_thickness_image = File.join(base_dir, "/resources", "dadoWidth.svg")
+            dado_depth_image = File.join(base_dir, "/resources", "dadoDepth.svg")
+            self._dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
+            self._dialog.execute_script("document.getElementById('dado_thickness_img').src = '#{dado_thickness_image}';")
+            self._dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
+        end
         def self.close
             self._dialog&.close
-            self._dialog = nil
+            self.clear_selected_drawer_data
         end
         #@param [Sketchup::Group]
-        def self.add_unique_selected_drawer_data(group)
+        def self.add_selected_group_data(group)
             return false unless Drawer::Drawer::is_drawer_group?(group)
             sheet_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "sheet_thickness")
             dado_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "dado_thickness")
