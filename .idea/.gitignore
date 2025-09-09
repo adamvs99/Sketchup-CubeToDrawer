@@ -9,3 +9,8 @@
 vcs.xml
 modules.xml
 CubeDebug.iml
+./box_to_drawer.rbz
+./src/resources/DrawerCube.skp
+./src/resources/DrawerCube~.skp
+./lib/GemFile.lock
+./.idea/inspectionProfiles/Project_Default.xml
