@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 group :development do
     gem 'minitest' # Not needed for the stubs, but useful for tests.
     gem 'sketchup-api-stubs'
-    gem 'debase'
-    gem 'ruby-debug-ide'
+    #gem 'debase'
+    #gem 'ruby-debug-ide'
+    gem 'debug', '>= 1.11.0'
 end
