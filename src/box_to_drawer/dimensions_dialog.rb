@@ -18,150 +18,6 @@ module AdamExtensions
 
         def self.show
 
-            html = <<-HTML
-            <!DOCTYPE html>
-                <html>
-                    <head>
-                      <title>Box to Drawer Parameters</title>
-                      <style>
-                        body { font-family: sans-serif; }
-                        button { padding: 10px 20px; }
-                        .center {
-                          text-align: center;
-                          border: 3px solid green;
-                        }
-                        .center_editable {
-                          text-align: center;
-                          width: 100px;
-                        }
-                        .unit_noneditable {
-                          text-align: left;
-                          width: 30px;
-                          border: none;
-                          color: darkblue;
-                          font-weight: bold;
-                        }
-                        .images {
-                          vertical-align: middle;
-                          horiz-align: center;
-                          height: 60%;
-                          margin: auto;
-                          margin-top: 10px;
-                          width: 60%;
-                          position: relative;
-                        }
-                        img { display: none; }
-                      </style>
-                    </head>
-                    <body>
-                      <h3 style="text-align: center;">Box to Drawer Parameters</h3>
-                      <div class="center">
-                        <h3>Thickness of drawer panels</h3>
-                        <p>
-                            <label for="sheet_thickness">Sheet Thickness:</label>
-                            <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness" tabindex="1">
-                            <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units" readonly="readonly" tabindex="-1">
-                        </p>
-                        <p>
-                           <label for="dado_thickness">Dado Thickness:</label>
-                           <input class="center_editable" type="text" id="dado_thickness" name="dado_thickness" tabindex="2">
-                           <input class="unit_noneditable" type="text" id="dado_thickness_units" name="dado_thickness_units" readonly="readonly" tabindex="-1">
-                        </p>
-                         <p>
-                           <label for="dado_depth">Dado Depth:</label>
-                           <input class="center_editable" type="text" id="dado_depth" name="dado_depth" tabindex="3">
-                           <input class="unit_noneditable" type="text" id="dado_depth_units" name="dado_depth_units" readonly="readonly" tabindex="-1">
-                        </p>
-                        
-                         <p>
-                           <label for="hidden_dado">Hidden Dado:</label>
-                           <input class="center_editable" type="checkbox" id="hidden_dado" name="hidden_dado" value="hidden_dado" tabindex="4">
-                        </p>
-                       
-                        <p>
-                            <button onclick="sendDataToSketchUp()" id="update_button" tabindex="0">Update</button>
-                        </p>
-                      </div>
-                      <div class="images">
-                          <img id="sheet_thickness_img" alt="sheetThickness">
-                          <img id="dado_thickness_img" alt="dadoWidth">
-                          <img id="dado_depth_img" alt="dadoDepth">
-                      </div>
-                      <script>
-                        function sendDataToSketchUp() {
-                            var sheetThickness = document.getElementById('sheet_thickness').value;
-                            var dadoWidth = document.getElementById('dado_thickness').value;
-                            var dadoDepth = document.getElementById('dado_depth').value;
-
-                            sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
-                        }
-                        
-                         function inputNumberFormat(elementID) {
-                            const inputElement = document.getElementById(elementID);
-                            var inputValue = inputElement.value;
-                            inputValue = inputValue.trim();
-                            const numberValue = parseFloat(inputValue);
-                            if (!isNaN(numberValue)) {
-                                inputElement.style = "color: black;"
-                                inputElement.value = numberValue.toFixed(2);
-                                document.getElementById("update_button").disabled = false;
-                            } else {
-                                inputElement.style = "color: red;"
-                                document.getElementById("update_button").disabled = true;
-                                console.warn("Input is not a valid number.");
-                            }
-                       }
-
-// Example HTML for the input field
-// <input type="text" id="myInput" onblur="formatInputToTwoDecimals()">
-                       document.getElementById("sheet_thickness").addEventListener('focusin', function() {
-                            document.getElementById("sheet_thickness_img").style.display="block";
-                        });
-                        document.getElementById("sheet_thickness").addEventListener('focusout', function() {
-                            document.getElementById("sheet_thickness_img").style.display="none";
-                            inputNumberFormat("sheet_thickness");
-                        });
-                        document.getElementById("dado_thickness").addEventListener('focusin', function() {sketchup.putstr("dado_thickness in focus")
-                            document.getElementById("dado_thickness_img").style.display="block";
-                         });
-                        document.getElementById("dado_thickness").addEventListener('focusout', function() {
-                            document.getElementById("dado_thickness_img").style.display="none";
-                            inputNumberFormat("dado_thickness");
-                        });
-                        document.getElementById("dado_depth").addEventListener('focusin', function() {
-                            document.getElementById("dado_depth_img").style.display = "block";
-                         });
-                        document.getElementById("dado_depth").addEventListener('focusout', function() {
-                            document.getElementById("dado_depth_img").style.display = "none";
-                            inputNumberFormat("dado_depth");
-                         });
-                        
-                        document.getElementById("sheet_thickness").addEventListener('keypress', function(event) {
-                            if (!/[0-9.]/.test(event.key)) {
-                                event.preventDefault(); // Prevent non-numeric characters
-                            }
-                        });
-                        document.getElementById("dado_thickness").addEventListener('keypress', function(event) {
-                            if (!/[0-9.]/.test(event.key)) {
-                                event.preventDefault(); // Prevent non-numeric characters
-                            }
-                        });
-                        document.getElementById("dado_depth").addEventListener('keypress', function(event) {
-                            if (!/[0-9.]/.test(event.key)) {
-                                event.preventDefault(); // Prevent non-numeric characters
-                            }
-                        });
-                        document.getElementById("hidden_dado").addEventListener('change', function() {
-                            sketchup.updateHiddenDado(this.checked)
-                        });
-                        document.addEventListener('DOMContentLoaded', function() {
-                          sketchup.dom_loaded(); 
-                        });                     
-                      </script>
-                    </body>
-                </html>
-            HTML
-
             options = {
                 :dialog_title => "Drawer Parameters",
                 :preferences_key => "dimensions_dialog.dialog", # Unique key for persistence
@@ -177,7 +33,9 @@ module AdamExtensions
                 # by clicking the X, or by using the ESC key.
                 #puts "The user closed the dialog."
             }
-            self._dialog.set_html(html)
+            base_dir = __dir__.sub("box_to_drawer", "")
+            html_file = File.join(base_dir, "/resources", "dimensions.html")
+            self._dialog.set_file(html_file)
             self._dialog.set_size(360, 540)
 
             self._dialog.add_action_callback("putstr") do |action_context, str|
