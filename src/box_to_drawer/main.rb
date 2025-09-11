@@ -23,7 +23,6 @@ module AdamExtensions
         def self.ctd_main
             return unless Drawer::Drawer::selection_to_drawers("test")
             Units::set_units_type
-            Drawer::Drawer.initialize_units
             DimensionsDialog::show
             SelectObserver::install
         end # def ctd_main
