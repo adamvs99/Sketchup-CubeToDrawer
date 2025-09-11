@@ -1,0 +1,22 @@
+{
+  "default_dimension": {
+    "imperial": {
+      "json<sheet_thickness>": 0.75,
+      "json<dado_thickness>": 0.25,
+      "json<dado_depth>": 0.25,
+      "json<conversion_factor>": 1.0
+    },
+    "metric": {
+      "json<sheet_thickness>": 18,
+      "json<dado_thickness>": 6,
+      "json<dado_depth>": 6,
+      "json<conversion_factor>": 25.4
+    },
+    "cm_metric": {
+      "json<sheet_thickness>": 1.8,
+      "json<dado_thickness>": 0.6,
+      "json<dado_depth>": 0.6,
+      "json<conversion_factor>": 2.54
+    }
+  }
+}
