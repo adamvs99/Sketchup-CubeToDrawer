@@ -74,10 +74,32 @@
             var sheetThickness = document.getElementById('sheet_thickness').value;
             var dadoWidth = document.getElementById('dado_thickness').value;
             var dadoDepth = document.getElementById('dado_depth').value;
+            var hiddenDado = document.getElementById('hidden_dado').checked;
 
-            sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth); // 'updateDialogValues' is a Ruby callback
+            sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth, hiddenDado); // 'updateDialogValues' is a Ruby callback
         }
-        
+        document.getElementById("sheet_thickness").addEventListener('focusin', function() {
+            document.getElementById("sheet_thickness_img").style.display="block";
+        });
+        document.getElementById("sheet_thickness").addEventListener('focusout', function() {
+            document.getElementById("sheet_thickness_img").style.display="none";
+            inputNumberFormat("sheet_thickness");
+        });
+        document.getElementById("dado_thickness").addEventListener('focusin', function() {sketchup.putstr("dado_thickness in focus")
+            document.getElementById("dado_thickness_img").style.display="block";
+        });
+        document.getElementById("dado_thickness").addEventListener('focusout', function() {
+            document.getElementById("dado_thickness_img").style.display="none";
+            inputNumberFormat("dado_thickness");
+        });
+        document.getElementById("dado_depth").addEventListener('focusin', function() {
+            document.getElementById("dado_depth_img").style.display = "block";
+        });
+        document.getElementById("dado_depth").addEventListener('focusout', function() {
+            document.getElementById("dado_depth_img").style.display = "none";
+            inputNumberFormat("dado_depth");
+        });
+
         // Live validation: turn text red on invalid input and disable Update
         // Helpers for live validation
         function isValidNumberStr(str) {
@@ -88,7 +110,7 @@
             if (matches == null) return false;
             if (matches[0] != s) return false;
             const n = parseFloat(s);
-            return !Number.isNaN(n) && Number.isFinite(n) && n > 0.0001
+            return !Number.isNaN(n) && Number.isFinite(n) && n > 0.001
         }
 
         function markValidity(inputEl, valid) {
@@ -108,15 +130,9 @@
             const inputElement = document.getElementById(elementID);
             var inputValue = inputElement.value;
             inputValue = inputValue.trim();
-            const numberValue = parseFloat(inputValue);
-            if (!isNaN(numberValue)) {
-                markValidity(inputElement, true);
+            if (isValidNumberStr(inputValue)) {
+                const numberValue = parseFloat(inputValue);
                 inputElement.value = numberValue.toFixed(2);
-                document.getElementById("update_button").disabled = false;
-            } else {
-                markValidity(inputElement, false);
-                document.getElementById("update_button").disabled = true;
-                console.warn("Input is not a valid number.");
             }
         }
 
@@ -135,7 +151,7 @@
             sketchup.updateHiddenDado(this.checked)
         });
         document.addEventListener('DOMContentLoaded', function() {
-            //sketchup.dom_loaded();
+            sketchup.dom_loaded();
         });
     </script>
     </body>
