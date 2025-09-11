@@ -14,9 +14,33 @@ module AdamExtensions
             attr_accessor :_dialog, :_selected_drawer_data
         end
         self._dialog = nil
-        self._selected_drawer_data = {:sheet_thickness=>[], :dado_thickness=>[], :dado_depth=>[], :hidden_dado=>false}
+        self._selected_drawer_data = {:sheet_thickness=>[], :sheet_thickness_default=>0.0,
+                                      :dado_thickness=>[], :dado_thickness_default=>0.0,
+                                      :dado_depth=>[], :dado_depth_default=>0.0,
+                                      :hidden_dado=>false}
+        def self._initialize_units
+            # this gets called when a drawer is created
+            # gate this if already there are already drawers
+            # created
+            glob_data = self._selected_drawer_data
+            return if glob_data[:sheet_thickness_default] > 0.0 &&
+                      glob_data[:dado_thickness_default] > 0.0 &&
+                      glob_data[:dado_depth_default] > 0.0
+            base_dir = __dir__.sub("box_to_drawer", "")
+            json_file = File.join(base_dir, "/resources", "nv_data.json")
+            json_data = File.read(json_file)
+            json_data = JSON.parse(json_data)
+            default_units = json_data["default_dimension"][Units::units_type]
+
+            conversion_factor = default_units["json<conversion_factor>"]
+            glob_data[:sheet_thickness_default] = default_units["json<sheet_thickness>"] / conversion_factor
+            glob_data[:dado_thickness_default] = default_units["json<dado_thickness>"] / conversion_factor
+            glob_data[:dado_depth_default] = default_units["json<dado_depth>"] / conversion_factor
+        end
 
         def self.show
+
+            self._initialize_units
 
             options = {
                 :dialog_title => "Drawer Parameters",
@@ -43,7 +67,7 @@ module AdamExtensions
             end
 
             # Ruby callback that JavaScript can trigger
-            self._dialog.add_action_callback("updateDimensionsValues") do |action_context, sheet_thickness, dado_thickness, dado_depth|
+            self._dialog.add_action_callback("updateDimensionsValues") do |action_context, sheet_thickness, dado_thickness, dado_depth, hidden_dado|
                 valid_values = false
                 begin
                     sheet_thickness = Float(sheet_thickness)
@@ -66,8 +90,12 @@ module AdamExtensions
                 else
                     #
                 end
-                Drawer::Drawer::update_sheet_dado_values(sheet_thickness, dado_thickness, dado_depth)
-                Drawer::Drawer.selection_to_drawers("erase,update")
+                data = { :sheet_thickness => sheet_thickness,
+                         :dado_thickness => dado_thickness,
+                         :dado_depth => dado_depth,
+                         :hidden_dado => hidden_dado }
+                Drawer::Drawer.selection_to_drawers( "erase,update", data)
+                self._clear_selected_drawer_data
             end
 
             self._dialog.add_action_callback("updateHiddenDado") do |action_context, hidden_dado_checked|
@@ -94,10 +122,10 @@ module AdamExtensions
             _to_s = lambda {|range|
                 range.size == 1 ? sprintf("%.2f", range.first) : sprintf("%.2f..%.2f", range.first, range.last)
             }
-
-            sheet_thickness = convert.call(DimensionsDialog._selected_drawer_data[:sheet_thickness], Drawer::Drawer.sheet_thickness)
-            dado_thickness = convert.call(DimensionsDialog._selected_drawer_data[:dado_thickness], Drawer::Drawer.dado_thickness)
-            dado_depth = convert.call(DimensionsDialog._selected_drawer_data[:dado_depth], Drawer::Drawer.dado_depth)
+            glob_data = self._selected_drawer_data
+            sheet_thickness = convert.call(glob_data[:sheet_thickness], glob_data[:sheet_thickness_default])
+            dado_thickness = convert.call(glob_data[:dado_thickness], glob_data[:dado_thickness_default])
+            dado_depth = convert.call(glob_data[:dado_depth], glob_data[:dado_depth_default])
             case Units::units_type
             when "imperial"
                 units = "in"
@@ -135,14 +163,14 @@ module AdamExtensions
         end
         def self.close
             self._dialog&.close
-            self.clear_selected_drawer_data
+            self._clear_selected_drawer_data
         end
         #@param [Sketchup::Group]
         def self.add_selected_group_data(group)
             return false unless Drawer::Drawer::is_drawer_group?(group)
-            sheet_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "sheet_thickness")
-            dado_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "dado_thickness")
-            dado_depth = group.get_attribute(Drawer::Drawer::drawer_data_tag, "dado_depth")
+            sheet_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "su-obj<sheet_thickness>")
+            dado_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "su-obj<dado_thickness>")
+            dado_depth = group.get_attribute(Drawer::Drawer::drawer_data_tag, "su-obj<dado_depth>")
             return false unless sheet_thickness&.positive? && dado_thickness&.positive? && dado_depth&.positive?
             DimensionsDialog._selected_drawer_data[:sheet_thickness] << sheet_thickness unless DimensionsDialog._selected_drawer_data[:sheet_thickness].include? sheet_thickness
             DimensionsDialog._selected_drawer_data[:dado_thickness] << dado_thickness unless DimensionsDialog._selected_drawer_data[:dado_thickness].include? dado_thickness
@@ -150,7 +178,7 @@ module AdamExtensions
             true
         end
 
-        def self.clear_selected_drawer_data
+        def self._clear_selected_drawer_data
             DimensionsDialog._selected_drawer_data[:sheet_thickness].clear
             DimensionsDialog._selected_drawer_data[:dado_thickness].clear
             DimensionsDialog._selected_drawer_data[:dado_depth].clear
