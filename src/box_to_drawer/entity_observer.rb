@@ -11,7 +11,9 @@ module AdamExtensions
     module EntityObserver
         class EntityObserver < Sketchup::EntitiesObserver
             def onElementRemoved(entities, entity_id)
-                super
+                # Forward to your app logic or add a small trace to debug.
+                # Example: AdamExtensions::Logger.debug("Removed entity_id=#{entity_id}")
+                # NOTE: You can't get the removed entity from entity_id reliably here.
             end
         end # class EntityObserver
 
