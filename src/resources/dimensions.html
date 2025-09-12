@@ -79,6 +79,7 @@
             sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth, hiddenDado); // 'updateDialogValues' is a Ruby callback
         }
         document.getElementById("sheet_thickness").addEventListener('focusin', function() {
+            document.getElementById('sheet_thickness').select();
             document.getElementById("sheet_thickness_img").style.display="block";
         });
         document.getElementById("sheet_thickness").addEventListener('focusout', function() {
@@ -86,6 +87,7 @@
             inputNumberFormat("sheet_thickness");
         });
         document.getElementById("dado_thickness").addEventListener('focusin', function() {sketchup.putstr("dado_thickness in focus")
+            document.getElementById('dado_thickness').select();
             document.getElementById("dado_thickness_img").style.display="block";
         });
         document.getElementById("dado_thickness").addEventListener('focusout', function() {
@@ -93,6 +95,7 @@
             inputNumberFormat("dado_thickness");
         });
         document.getElementById("dado_depth").addEventListener('focusin', function() {
+            document.getElementById('dado_depth').select();
             document.getElementById("dado_depth_img").style.display = "block";
         });
         document.getElementById("dado_depth").addEventListener('focusout', function() {
