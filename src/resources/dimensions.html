@@ -78,25 +78,29 @@
 
             sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth, hiddenDado); // 'updateDialogValues' is a Ruby callback
         }
+
+        // handle focus in events for input fields
         document.getElementById("sheet_thickness").addEventListener('focusin', function() {
             document.getElementById('sheet_thickness').select();
             document.getElementById("sheet_thickness_img").style.display="block";
-        });
-        document.getElementById("sheet_thickness").addEventListener('focusout', function() {
-            document.getElementById("sheet_thickness_img").style.display="none";
-            inputNumberFormat("sheet_thickness");
         });
         document.getElementById("dado_thickness").addEventListener('focusin', function() {sketchup.putstr("dado_thickness in focus")
             document.getElementById('dado_thickness').select();
             document.getElementById("dado_thickness_img").style.display="block";
         });
-        document.getElementById("dado_thickness").addEventListener('focusout', function() {
-            document.getElementById("dado_thickness_img").style.display="none";
-            inputNumberFormat("dado_thickness");
-        });
         document.getElementById("dado_depth").addEventListener('focusin', function() {
             document.getElementById('dado_depth').select();
             document.getElementById("dado_depth_img").style.display = "block";
+        });
+
+        // handle focus out events for input fields
+        document.getElementById("sheet_thickness").addEventListener('focusout', function() {
+            document.getElementById("sheet_thickness_img").style.display="none";
+            inputNumberFormat("sheet_thickness");
+        });
+        document.getElementById("dado_thickness").addEventListener('focusout', function() {
+            document.getElementById("dado_thickness_img").style.display="none";
+            inputNumberFormat("dado_thickness");
         });
         document.getElementById("dado_depth").addEventListener('focusout', function() {
             document.getElementById("dado_depth_img").style.display = "none";
@@ -146,7 +150,6 @@
                 const valid = isValidNumberStr(val);
                 markValidity(event.target, valid);
                 updateButtonState();
-                console.log('Input value changed:', val)
             });
         });
 
