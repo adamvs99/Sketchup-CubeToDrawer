@@ -30,7 +30,11 @@ module AdamExtensions
                     DimensionsDialog::show
                     drawerable_group_count += 1
                 end
-                DimensionsDialog::close if drawerable_group_count == 0
+                DimensionsDialog::close unless drawerable_group_count
+            end
+
+            def onSelectionCleared(selection)
+                DimensionsDialog::close
             end
 
         end # class SelObserver
