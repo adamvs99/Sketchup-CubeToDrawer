@@ -98,10 +98,6 @@ module AdamExtensions
                 self._clear_selected_drawer_data
             end
 
-            self._dialog.add_action_callback("updateHiddenDado") do |action_context, hidden_dado_checked|
-                Drawer::Drawer::update_hidden_dado(hidden_dado_checked)
-            end
-
             self._dialog.add_action_callback("dom_loaded") do |action_context|
                 self._update_dialog_inputs
             end
