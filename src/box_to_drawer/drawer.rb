@@ -19,31 +19,12 @@ module AdamExtensions
 
             @@drawers = []
 
-            def self.drawer_data_tag
-                "avs_drawer_data"
-            end
-
             #@param [group] the group to check
             #@param [group] the group to check
             def self.is_drawer_group?(group)
                 return false unless group.is_a?(Sketchup::Group)
                 sheet_thickness = group.get_attribute(Drawer.drawer_data_tag, "su-obj<sheet_thickness>")
                 sheet_thickness&.positive?
-            end
-
-
-            def self.update(data)
-                return if data.nil?
-                @@drawers.each do |drawer|
-                    next unless drawer.valid?
-                    drawer.clear_groups
-                    drawer.create_bottom_panel(data)
-                    drawer.create_left_right_panels(data)
-                    drawer.create_front_back_panels(data)
-                    drawer.create_bounding_group(data)
-                end
-                @@drawers.clear
-                DimensionsDialog::close
             end
 
             def self.selection_to_drawers(action="", data=nil)
@@ -67,6 +48,17 @@ module AdamExtensions
                 true
             end
 
+            def self.drawer_data_tag
+                "avs_drawer_data"
+            end
+
+            def self.update(data)
+                return if data.nil?
+                @@drawers.each {|drawer| drawer._update(data) }
+                @@drawers.clear
+                DimensionsDialog::close
+            end
+
             def initialize(box_group)
                 puts "Drawer.initialize - group: #{box_group}"
                 @face_map = nil
@@ -80,22 +72,19 @@ module AdamExtensions
             def valid?
                 @face_map&.valid?
             end
-            def clear_groups
-                @bounding_group&.erase! unless @bounding_group&.deleted?
-                @bounding_group = nil
-                @current_groups.each {|e| e.erase! if e&.respond_to?(:erase!)}
-                @current_groups.clear
+
+            def _update(data)
+                return unless valid?
+                _clear_groups
+                _create_bottom_panel(data)
+                _create_left_right_panels(data)
+                _create_front_back_panels(data)
+                _create_bounding_group(data)
             end
 
-            def current_groups
-                @current_groups
-            end
+            private
 
-            def bounding_group
-                @bounding_group
-            end
-
-            def create_bottom_panel(data)
+            def _create_bottom_panel(data)
                 # gate this function if object not valid
                 return unless valid?
                 sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
@@ -139,9 +128,9 @@ module AdamExtensions
                 model.start_operation("Bottom Rear Rabbet", true)
                 @current_groups << Utils.cut_channel(model, bottom_group, cut_rect, bottom_rect.width+sheet_thickness, "x", "lt")
                 model.commit_operation
-            end #create_bottom_panel
+            end #_create_bottom_panel
 
-            def create_left_right_panels(data)
+            def _create_left_right_panels(data)
                 # gate this function if object not valid
                 return unless valid?
                 sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
@@ -192,7 +181,7 @@ module AdamExtensions
                 @current_groups << Utils.copy_move_rotate_group(right_side_group, -front_rect.width + sheet_thickness, 0, 0, Z_AXIS, 180)
             end # def create_side_panels
 
-            def create_front_back_panels(data)
+            def _create_front_back_panels(data)
                 # gate this function if object not valid
                 return unless valid?
                 sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
@@ -241,7 +230,7 @@ module AdamExtensions
                 model.commit_operation  # Slice Bottom Dado
             end # def create_side_front_back_panels
 
-            def create_bounding_group(data)
+            def _create_bounding_group(data)
                 # gate this function if object not valid
                 return unless valid?
                 sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
@@ -265,13 +254,12 @@ module AdamExtensions
                 @bounding_group = bounding_group
             end
 
-            # @param [hide_dados] boolean to hide or not to hide the dados
-            # called from settings panel - triggers an update
-            def self.update_hidden_dado(hide_dado)
-                hidden_dado = hide_dado
-                Drawer.update
+            def _clear_groups
+                @bounding_group&.erase! unless @bounding_group&.deleted?
+                @bounding_group = nil
+                @current_groups.each {|e| e.erase! if e&.respond_to?(:erase!)}
+                @current_groups.clear
             end
-            # called from settting panel - triggers an update
 
         end # class Drawer
     end # module Drawer
