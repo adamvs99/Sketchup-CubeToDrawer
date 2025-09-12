@@ -60,7 +60,6 @@ module AdamExtensions
             end
 
             def initialize(box_group)
-                puts "Drawer.initialize - group: #{box_group}"
                 @face_map = nil
                 @current_groups = []
                 @bounding_group = nil
