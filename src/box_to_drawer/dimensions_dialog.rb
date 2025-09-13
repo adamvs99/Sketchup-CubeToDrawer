@@ -7,6 +7,7 @@
 
 require_relative 'drawer'
 require_relative 'units'
+require_relative 'utils'
 
 module AdamExtensions
     module DimensionsDialog
@@ -57,8 +58,7 @@ module AdamExtensions
                 # by clicking the X, or by using the ESC key.
                 #puts "The user closed the dialog."
             }
-            base_dir = __dir__.sub("box_to_drawer", "")
-            html_file = File.join(base_dir, "/resources", "dimensions.html")
+            html_file = Utils::get_resource_file("dimensions.html")
             self._dialog.set_file(html_file)
             self._dialog.set_size(360, 540)
 
@@ -141,22 +141,24 @@ module AdamExtensions
             else
                 #
             end
-            self._dialog.execute_script("document.getElementById('sheet_thickness').value = '#{_to_s.call(sheet_thickness)}';")
-            self._dialog.execute_script("document.getElementById('dado_thickness').value = '#{_to_s.call(dado_thickness)}';")
-            self._dialog.execute_script("document.getElementById('dado_depth').value = '#{_to_s.call(dado_depth)}';")
-            self._dialog.execute_script("document.getElementById('sheet_units').value = '#{units}';")
-            self._dialog.execute_script("document.getElementById('dado_thickness_units').value = '#{units}';")
-            self._dialog.execute_script("document.getElementById('dado_depth_units').value = '#{units}';")
+
+            self._dialog.execute_script("setInitialValue('sheet_thickness', '#{_to_s.call(sheet_thickness)}');")
+            self._dialog.execute_script("setInitialValue('dado_thickness', '#{_to_s.call(dado_thickness)}');")
+            self._dialog.execute_script("setInitialValue('dado_depth', '#{_to_s.call(dado_depth)}');")
+
+            ["sheet_units", "dado_thickness_units", "dado_depth_units"].each {|id|
+                self._dialog.execute_script("document.getElementById('#{id}').value = '#{units}';")
+            }
 
             # set the image path
-            base_dir = __dir__.sub("box_to_drawer", "")
-            sheet_thick_image = File.join(base_dir, "/resources", "sheetThickness.svg")
-            dado_thickness_image = File.join(base_dir, "/resources", "dadoWidth.svg")
-            dado_depth_image = File.join(base_dir, "/resources", "dadoDepth.svg")
+            sheet_thick_image = Utils::get_resource_file("sheetThickness.svg")
+            dado_thickness_image = Utils::get_resource_file("dadoWidth.svg")
+            dado_depth_image = Utils::get_resource_file("dadoDepth.svg")
             self._dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
             self._dialog.execute_script("document.getElementById('dado_thickness_img').src = '#{dado_thickness_image}';")
             self._dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
         end
+
         def self.close
             self._dialog&.close
             self._clear_selected_drawer_data
