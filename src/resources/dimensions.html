@@ -153,6 +153,14 @@
             });
         });
 
+        function setInitialValue(elementID, val) {
+            const inputElement = document.getElementById(elementID);
+            const valid = isValidNumberStr(val);
+            inputElement.value = val;
+            markValidity(inputElement, valid);
+            updateButtonState();
+        }
+
         document.getElementById("hidden_dado").addEventListener('change', function() {
             sketchup.updateHiddenDado(this.checked)
         });
