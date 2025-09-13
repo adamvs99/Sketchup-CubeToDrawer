@@ -12,6 +12,14 @@ module AdamExtensions
 
     module Utils
 
+        # @param [String] file name in the resource directory
+        # @return [File object] target entity
+        def self.get_resource_file(file_name)
+            base_dir = __dir__.sub("box_to_drawer", "")
+            return File.join(base_dir, "/resources", file_name)
+        end
+
+
         # @param [Object] target entity
         # @param [String] name of the attribute dictionary
         # @param [Hash] hash of key/value pairs to be added to the attribute dictionary
