@@ -11,7 +11,6 @@ require_relative 'box_shape'
 require_relative 'rectangle'
 require_relative 'units'
 require_relative 'utils'
-require_relative 'dimensions_dialog'
 
 module AdamExtensions
     module Drawer
@@ -56,7 +55,6 @@ module AdamExtensions
                 return if data.nil?
                 @@drawers.each {|drawer| drawer._update(data) }
                 @@drawers.clear
-                DimensionsDialog::close
             end
 
             def initialize(box_group)
