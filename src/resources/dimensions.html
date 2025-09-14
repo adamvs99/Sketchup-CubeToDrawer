@@ -41,7 +41,7 @@
         <h3>Thickness of drawer panels</h3>
         <p>
             <label for="sheet_thickness">Sheet Thickness:</label>
-            <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness" tabindex="1">
+            <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness" tabindex="0">
             <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units" readonly="readonly" tabindex="-1">
         </p>
         <p>
@@ -61,7 +61,9 @@
         </p>
 
         <p>
-            <button onclick="sendDataToSketchUp()" id="update_button" tabindex="0">Update</button>
+            <button onclick="sendDataToSketchUp('defaults')" id="save_as_defaults" tabindex="5">Save As Defaults</button>
+            <button onclick="sendDataToSketchUp('data')" id="update_button" tabindex="0">Update</button>
+            <button onclick="sendDataToSketchUp('quit')" id="update_button" tabindex="0">Cancel</button>
         </p>
     </div>
     <div class="images">
@@ -70,13 +72,22 @@
         <img id="dado_depth_img" alt="dadoDepth">
     </div>
     <script>
-        function sendDataToSketchUp() {
+        function sendDataToSketchUp(how) {
             var sheetThickness = document.getElementById('sheet_thickness').value;
             var dadoWidth = document.getElementById('dado_thickness').value;
             var dadoDepth = document.getElementById('dado_depth').value;
             var hiddenDado = document.getElementById('hidden_dado').checked;
 
-            sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth, hiddenDado); // 'updateDialogValues' is a Ruby callback
+            if (how == 'defaults') {
+                sketchup.updateDefaultsValues(sheetThickness, dadoWidth, dadoDepth, hiddenDado);
+            }
+            else if (how == 'data'){
+                sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth, hiddenDado);
+            }// 'updateDialogValues' is a Ruby callback
+            else if (how == 'quit') {
+                sketchup.closeDialog();
+            }
+
         }
 
         // handle focus in events for input fields
@@ -84,7 +95,7 @@
             document.getElementById('sheet_thickness').select();
             document.getElementById("sheet_thickness_img").style.display="block";
         });
-        document.getElementById("dado_thickness").addEventListener('focusin', function() {sketchup.putstr("dado_thickness in focus")
+        document.getElementById("dado_thickness").addEventListener('focusin', function() {
             document.getElementById('dado_thickness').select();
             document.getElementById("dado_thickness_img").style.display="block";
         });
@@ -130,7 +141,9 @@
         }
 
         function updateButtonState() {
-            document.getElementById('update_button').disabled = anyInvalid();
+            const invalid = anyInvalid();
+            document.getElementById('save_as_defaults').disabled = invalid;
+            document.getElementById('update_button').disabled = invalid;
         }
 
         function inputNumberFormat(elementID) {
