@@ -44,7 +44,7 @@ module AdamExtensions
 
             def onSelectionBulkChange(selection)
                 changed
-                notify_observers("selection_change", selection)
+                notify_observers("bulk_selection_change", selection)
             end
 
             def onSelectionRemoved(selection)

@@ -34,7 +34,7 @@ module AdamExtensions
             end
             #@param [String] selection_change - the identifier as to the event action
             #@param [SketchUp::Selection] selection - the selection
-            def update_selected_group_data(selection_change, selection)
+            def update_selected_group_data(context, selection)
                 return if selection.empty?
                 _clear_selected_drawer_data
                 selection.each do |e|
