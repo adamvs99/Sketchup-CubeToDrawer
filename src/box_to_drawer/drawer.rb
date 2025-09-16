@@ -28,23 +28,22 @@ module AdamExtensions
 
             def self.selection_to_drawers(action="", data=nil)
                 selection = Sketchup.active_model.selection
-                return if selection&.empty?
+                return false if selection&.empty?
+                test_only = action.include?("test")
                 groups = []
-                new_groups = []
+                created_box_groups = []
                 selection.each do |s|
-                    group, group_action, new_group = BoxShape::BoxMap.is_valid_selection?(s)
-                    next unless group || new_group
-                    Drawer.new(new_group.nil? ? group : new_group) unless action.include?("test")
+                    group, group_action, created_box_group = BoxShape::BoxMap.is_valid_selection?(s)
+                    next unless group || created_box_group
+                    Drawer.new(created_box_group.nil? ? group : created_box_group) unless test_only
                     groups << group if group && group_action.include?("erase")
-                    new_groups << new_group if new_group
+                    created_box_group&.then {|v| created_box_groups << v}
                 end
-                # if just 'testing' then return with any other action
-                has_groups = groups.size + new_groups.size > 0
-                return has_groups if action.include?("test")
-                groups.each {|g| selection.remove(g); g.erase!}
-                new_groups.each {|g| g.erase!}
+                has_groups = groups.size + created_box_groups.size > 0
+                groups.each {|g| selection.remove(g); g.erase!} unless test_only
+                created_box_groups.each {|g| g.erase!}
                 Drawer.update(data)
-                true
+                has_groups
             end
 
             def self.drawer_data_tag
