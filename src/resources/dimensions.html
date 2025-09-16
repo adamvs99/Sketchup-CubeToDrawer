@@ -41,7 +41,7 @@
         <h3>Thickness of drawer panels</h3>
         <p>
             <label for="sheet_thickness">Sheet Thickness:</label>
-            <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness" tabindex="0">
+            <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness" tabindex="1">
             <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units" readonly="readonly" tabindex="-1">
         </p>
         <p>
@@ -61,9 +61,9 @@
         </p>
 
         <p>
-            <button onclick="sendDataToSketchUp('defaults')" id="save_as_defaults" tabindex="5">Save As Defaults</button>
-            <button onclick="sendDataToSketchUp('data')" id="update_button" tabindex="0">Update</button>
-            <button onclick="sendDataToSketchUp('quit')" id="update_button" tabindex="0">Cancel</button>
+            <button onclick="sendDataToSketchUp('defaults')" id="save_as_defaults" tabindex="6">Save As Defaults</button>
+            <button onclick="sendDataToSketchUp('data')" id="update_button" tabindex="5">Update</button>
+            <button onclick="sendDataToSketchUp('quit')" id="update_button" tabindex="-1">Cancel</button>
         </p>
     </div>
     <div class="images">
