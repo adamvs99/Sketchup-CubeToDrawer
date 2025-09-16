@@ -5,9 +5,14 @@
 #  Created by Adam Silver on 08/14/25.
 #  copyright Adam Silver © 2025 all rights reserved
 
+require 'sketchup.rb'
+require 'json'
 require_relative 'drawer'
+require_relative 'box_shape'
 require_relative 'units'
 require_relative 'utils'
+require_relative 'sel_observer'
+
 
 module AdamExtensions
     module DimensionsDialog
@@ -20,25 +25,31 @@ module AdamExtensions
 
         def self.close
             self._instance&.close
+            self._instance = nil
         end
         class DimensionsInputs
 
             def close
                 @dialog&.close
             end
-
-            #@param [Sketchup::Group]
-            def add_selected_group_data(group)
-                return false unless Drawer::Drawer::is_drawer_group?(group)
-                sheet_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "su-obj<sheet_thickness>")
-                dado_thickness = group.get_attribute(Drawer::Drawer::drawer_data_tag, "su-obj<dado_thickness>")
-                dado_depth = group.get_attribute(Drawer::Drawer::drawer_data_tag, "su-obj<dado_depth>")
-                return false unless sheet_thickness&.positive? && dado_thickness&.positive? && dado_depth&.positive?
-                # add unique values to the list...
-                @selected_drawer_data[:sheet_thickness] |= [sheet_thickness]
-                @selected_drawer_data[:dado_thickness] |= [dado_thickness]
-                @selected_drawer_data[:dado_depth] |= [dado_depth]
-                true
+            #@param [String] selection_change - the identifier as to the event action
+            #@param [SketchUp::Selection] selection - the selection
+            def update_selected_group_data(selection_change, selection)
+                return if selection.empty?
+                _clear_selected_drawer_data
+                selection.each do |e|
+                    if Drawer::Drawer::is_drawer_group?(e)
+                        tag = Drawer::Drawer::drawer_data_tag
+                        @selected_drawer_data[:sheet_thickness] |= [e.get_attribute(tag, "su-obj<sheet_thickness>")]
+                        @selected_drawer_data[:dado_thickness]  |= [e.get_attribute(tag, "su-obj<dado_thickness>")]
+                        @selected_drawer_data[:dado_depth]      |= [e.get_attribute(tag, "su-obj<dado_depth>")]
+                    elsif BoxShape::BoxMap.is_xyz_aligned_box?(e)
+                        @selected_drawer_data[:sheet_thickness] |= [@selected_drawer_data[:sheet_thickness_default]]
+                        @selected_drawer_data[:dado_thickness]  |= [@selected_drawer_data[:dado_thickness_default]]
+                        @selected_drawer_data[:dado_depth]      |= [@selected_drawer_data[:dado_depth_default]]
+                    end
+                end
+                @selected_drawer_data[:sheet_thickness].empty? ? DimensionsDialog::close : _update_dialog_inputs
             end
 
             private
@@ -48,24 +59,26 @@ module AdamExtensions
                                          :dado_depth=>[], :dado_depth_default=>0.0,
                                          :hidden_dado=>false}
                 @dialog = nil
+                SelectObserver::instance.add_observer(self, :update_selected_group_data)
                 _initialize_units
                 _show
             end
             def _initialize_units
-                # this gets called when a drawer is created
-                # gate this if already there are already drawers
-                # created
                 return if @selected_drawer_data[:sheet_thickness_default] > 0.0 &&
                           @selected_drawer_data[:dado_thickness_default] > 0.0 &&
                           @selected_drawer_data[:dado_depth_default] > 0.0
+
                 json_data = File.read(Utils::get_resource_file("nv_data.json"))
                 json_data = JSON.parse(json_data)
                 default_units = json_data["default_dimension"][Units::units_type]
 
                 conversion_factor = default_units["json<conversion_factor>"]
+                ["sheet_thickness", "dado_thickness", "dado_depth"].each do |id|
+                    @selected_drawer_data[id.to_sym] = []
+                end
                 @selected_drawer_data[:sheet_thickness_default] = default_units["json<sheet_thickness>"] / conversion_factor
-                @selected_drawer_data[:dado_thickness_default] = default_units["json<dado_thickness>"] / conversion_factor
-                @selected_drawer_data[:dado_depth_default] = default_units["json<dado_depth>"] / conversion_factor
+                @selected_drawer_data[:dado_thickness_default]  = default_units["json<dado_thickness>"] / conversion_factor
+                @selected_drawer_data[:dado_depth_default]      = default_units["json<dado_depth>"] / conversion_factor
             end
 
             def _show
@@ -81,9 +94,8 @@ module AdamExtensions
 
                 @dialog = UI::HtmlDialog.new(options) if @dialog.nil?
                 @dialog.set_on_closed {
-                    @dialog = nil
                     SelectObserver::quit
-                    UI.start_timer(0, false) { DimensionsDialog._instance = nil }
+                    #UI.start_timer(0, false) { DimensionsDialog.close }
                 }
                 @dialog.set_file(Utils::get_resource_file("dimensions.html"))
                 @dialog.set_size(400, 540)
@@ -137,15 +149,15 @@ module AdamExtensions
                              :dado_depth => dado_depth,
                              :hidden_dado => hidden_dado }
                     Drawer::Drawer.selection_to_drawers( "erase,update", data)
-                    close
-                    SelectObserver::quit
+                    UI.start_timer(0, false) { DimensionsDialog.close }
                 end
 
                 @dialog.add_action_callback("closeDialog") do |action_context|
-                    close
+                    UI.start_timer(0, false) { DimensionsDialog.close }
                 end
 
                 @dialog.add_action_callback("dom_loaded") do |action_context|
+                    update_selected_group_data('intialize', Sketchup.active_model.selection)
                     _update_dialog_inputs
                 end
 
@@ -207,10 +219,7 @@ module AdamExtensions
             end
 
             def _clear_selected_drawer_data
-                @selected_drawer_data[:sheet_thickness].clear
-                @selected_drawer_data[:dado_thickness].clear
-                @selected_drawer_data[:dado_depth].clear
-                @selected_drawer_data[:dado_depth].clear
+                [:sheet_thickness, :dado_thickness, :dado_depth].each {|id| @selected_drawer_data[id].clear}
             end
 
         end # class DimensionsInputs
