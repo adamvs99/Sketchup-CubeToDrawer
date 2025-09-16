@@ -7,6 +7,7 @@
 
 require 'sketchup.rb'
 require 'singleton'
+require 'observer'
 require_relative 'drawer'
 require_relative 'dimensions_dialog'
 
@@ -21,6 +22,7 @@ module AdamExtensions
 
         class SelObserver < Sketchup::SelectionObserver
             include Singleton
+            include Observable
             def initialize
                 super()
                 Sketchup.active_model.selection.add_observer(self)
@@ -40,18 +42,15 @@ module AdamExtensions
             end
 
 
-            #def onSelectionBulkChange(selection)
-            #    # Get the model's selection
-            #    drawerable_group_count = 0
-            #    model = Sketchup.active_model
-            #    model.selection.each do |e|
-            #        next unless DimensionsDialog::add_selected_group_data(e) || BoxShape::BoxMap.is_xyz_aligned_box?(e)
-            #        DimensionsDialog::DimensionsInputs::show
-            #        drawerable_group_count += 1
-            #    end
-            #    DimensionsDialog::close unless drawerable_group_count
-            #end
+            def onSelectionBulkChange(selection)
+                changed
+                notify_observers("selection_change", selection)
+            end
 
+            def onSelectionRemoved(selection)
+                changed
+                notify_observers("selection_removed", selection)
+            end
             def onSelectionCleared(selection)
                 DimensionsDialog::close
             end
@@ -65,6 +64,9 @@ module AdamExtensions
             self._instance = nil
         end
 
+        def self.instance
+            self._instance
+        end
         def self.install
             return if self._instance
             self._instance = SelObserver.instance
