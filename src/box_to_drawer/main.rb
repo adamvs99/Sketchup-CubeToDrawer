@@ -22,8 +22,8 @@ module AdamExtensions
         #-------------------------------------------------------------------------------
         def self.ctd_main
             Units::set_units_type
-            DimensionsDialog::install
             SelectObserver::install
+            DimensionsDialog::install
         end # def ctd_main
 
         unless file_loaded(__FILE__)
