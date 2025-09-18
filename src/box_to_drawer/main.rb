@@ -21,7 +21,7 @@ module AdamExtensions
         #  main Module code....
         #-------------------------------------------------------------------------------
         def self.ctd_main
-            Units::set_units_type
+            Units::install
             SelectObserver::install
             DimensionsDialog::install
         end # def ctd_main

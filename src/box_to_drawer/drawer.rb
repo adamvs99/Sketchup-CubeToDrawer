@@ -10,13 +10,14 @@ require_relative 'box_shape'
 require_relative 'rectangle'
 require_relative 'units'
 require_relative 'utils'
+require_relative 'err_handler'
 
 module AdamExtensions
     module Drawer
         class Drawer
 
             @@drawers = []
-            @@errors = nil
+            @@limits = nil
 
             #@param [group] the group to check
             #@param [group] the group to check
@@ -55,51 +56,51 @@ module AdamExtensions
                 keys = [:sheet_thickness, :dado_thickness, :dado_depth, :hidden_dado]
                 return false unless keys.all? {|k| data.key?(k)}
                 return false if data.values.include?(nil)
-                @@errors = Utils::get_json_data("limits.json") if @@errors.nil?
-                units_limits = @@errors["dimension_limits"][Units::units_type]
+                @@limits = Utils::get_json_data("limits.json") if @@limits.nil?
+                units_limits = @@limits["dimension_limits"][Units::units_type]
                 units_notation = units_limits["json<units_notation>"]
 
                 # test sheet thickness
                 #limit_str = units_limits["json<sheet_thickness_min>"]
                 #limit = Units::in_unit(Float(limit_str))
                 #if data[:sheet_thickness] < limit
-                #     err_string = @@errors[Units::local]["exceed_min_sheet"] + limit_str + units_notation
+                #     err_string = @@limits[Units::local]["exceed_min_sheet"] + limit_str + units_notation
                 #    UI.messagebox(err_string)
                 #    return false
                 #end
                 #limit_str = units_limits["json<sheet_thickness_max>"]
                 #limit = Units::in_unit(Float(limit_str))
                 #if data[:sheet_thickness] > limit
-                #    err_string = @@errors[Units::local]["exceed_max_sheet"] + limit_str + units_notation
+                #    err_string = @@limits[Units::local]["exceed_max_sheet"] + limit_str + units_notation
                 #    UI.messagebox(err_string)
                 #    return false
                 #end
 
                 # test dado thickness vs sheet thickness
                 if data[:dado_thickness] > data[:sheet_thickness]
-                    err_string = @@errors[Units::local]["dado_greaterthan_sheet"]
+                    err_string = ErrHander::instance["dado_greaterthan_sheet"]
                     UI.messagebox(err_string)
                     return false
                 end
                 limit_str = units_limits["json<dado_thickness_min>"]
                 limit = Units::in_unit(Float(limit_str))
                 if data[:dado_thickness] < limit
-                    err_string = @@errors[Units::local]["exceed_min_dado"] + limit_str + units_notation
+                    err_string = ErrHander::instance["exceed_min_dado"] + limit_str + units_notation
                     UI.messagebox(err_string)
                     return false
                 end
                 # test limits of dado depth & thickness
                 limit = Float(data[:sheet_thickness] * 0.2)
                 limit_str = (Units::in_to_current_units_type(data[:sheet_thickness] * 0.2)).round(2).to_s
-                proceed = " " + @@errors[Units::local]["yes_no_proceed"]
+                proceed = " " + ErrHander::instance["yes_no_proceed"]
                 if data[:dado_thickness] < limit
-                    err_string = @@errors[Units::local]["exceed_recommended_dado_width"] + limit_str + units_notation + proceed
+                    err_string = ErrHander::instance["exceed_recommended_dado_width"] + limit_str + units_notation + proceed
                     return UI.messagebox(err_string, MB_YESNO) == IDYES
                 end
                 limit = Float(data[:sheet_thickness] * 0.8)
                 limit_str = (Units::in_to_current_units_type(data[:sheet_thickness] * 0.8)).round(2).to_s
                 if data[:dado_depth] > data[:sheet_thickness] * 0.8
-                    err_string = @@errors[Units::local]["exceed_recommended_dado_depth"] + limit_str + units_notation + proceed
+                    err_string = ErrHander::instance["exceed_recommended_dado_depth"] + limit_str + units_notation + proceed
                     return UI.messagebox(err_string, MB_YESNO) == IDYES
                 end
                 true
@@ -112,7 +113,7 @@ module AdamExtensions
             end
 
             def initialize(box_group)
-                @@errors = Utils::get_json_data("error.json") if @@errors.nil?
+                @@limits = Utils::get_json_data("error.json") if @@limits.nil?
                 @face_map = nil
                 @current_groups = []
                 @bounding_group = nil

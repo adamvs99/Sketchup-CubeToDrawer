@@ -15,9 +15,8 @@ module AdamExtensions
         self._units_type = ""
         self._mm_in = 25.4
         self._cm_in = 2.54
-        self._local = "en"
 
-        def self.set_units_type
+        def self.install
             model = Sketchup.active_model
             units_options = model.options["UnitsOptions"]
 
@@ -53,9 +52,6 @@ module AdamExtensions
 
         end
 
-        def self.local
-            self._local
-        end
         def self.units_type
             self._units_type
         end
