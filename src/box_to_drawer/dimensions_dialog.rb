@@ -68,8 +68,7 @@ module AdamExtensions
                           @selected_drawer_data[:dado_thickness_default] > 0.0 &&
                           @selected_drawer_data[:dado_depth_default] > 0.0
 
-                json_data = File.read(Utils::get_resource_file("nv_data.json"))
-                json_data = JSON.parse(json_data)
+                json_data = Utils::get_json_data("nv_data.json")
                 default_units = json_data["default_dimension"][Units::units_type]
 
                 conversion_factor = default_units["json<conversion_factor>"]
@@ -113,12 +112,11 @@ module AdamExtensions
                     rescue
                         # TODO add handler
                     end
-                    json_data = File.read(Utils::get_resource_file("nv_data.json"))
-                    json_data = JSON.parse(json_data)
+                    json_data = Utils::get_json_data("nv_data.json")
                     json_data["default_dimension"][Units::units_type]["json<sheet_thickness>"] = sheet_thickness
                     json_data["default_dimension"][Units::units_type]["json<dado_thickness>"] = dado_thickness
                     json_data["default_dimension"][Units::units_type]["json<dado_depth>"] = dado_depth
-                    File.write(Utils::get_resource_file("nv_data.json"), json_data.to_json)
+                    Utils::write_pretty_json_data("nv_data.json", json_data)
                 end
                 # Ruby callback that JavaScript can trigger
                 @dialog.add_action_callback("updateDimensionsValues") do |action_context, sheet_thickness, dado_thickness, dado_depth, hidden_dado|
@@ -148,8 +146,10 @@ module AdamExtensions
                              :dado_thickness => dado_thickness,
                              :dado_depth => dado_depth,
                              :hidden_dado => hidden_dado }
-                    Drawer::Drawer.selection_to_drawers( "erase,update", data)
-                    UI.start_timer(0, false) { DimensionsDialog.close }
+                    if Drawer::Drawer.is_valid_drawer_data?(data)
+                        Drawer::Drawer.selection_to_drawers( "erase,update", data)
+                        UI.start_timer(0, false) { DimensionsDialog.close }
+                    end
                 end
 
                 @dialog.add_action_callback("closeDialog") do |action_context|

@@ -9,12 +9,14 @@ module AdamExtensions
 
     module Units
         class << self
-            attr_accessor :_units_type, :_mm_in, :_cm_in
+            attr_accessor :_units_type, :_mm_in, :_cm_in, :_local
         end
 
         self._units_type = ""
         self._mm_in = 25.4
         self._cm_in = 2.54
+        self._local = "en"
+
         def self.set_units_type
             model = Sketchup.active_model
             units_options = model.options["UnitsOptions"]
@@ -51,6 +53,9 @@ module AdamExtensions
 
         end
 
+        def self.local
+            self._local
+        end
         def self.units_type
             self._units_type
         end
@@ -82,6 +87,14 @@ module AdamExtensions
             units_type = self._units_type if units_type == "auto"
             return num if num==0 || units_type == "cm_metric"
             num * self._cm_in
+        end
+
+        # @param [Numeric] number to be converted
+        def self.in_to_current_units_type(num)
+            return num if num==0
+            return num * self._mm_in if self._units_type == "metric"
+            return num * self._cm_in if self._units_type == "cm_metric"
+            num
         end
 
     end # module Units

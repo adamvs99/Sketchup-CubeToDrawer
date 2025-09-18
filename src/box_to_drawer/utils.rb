@@ -6,6 +6,7 @@
 #  copyright Adam Silver © 2025 all rights reserved
 
 require 'sketchup.rb'
+require 'json'
 require_relative 'rectangle'
 
 module AdamExtensions
@@ -19,6 +20,15 @@ module AdamExtensions
             return File.join(base_dir, "/resources", file_name)
         end
 
+        def self.get_json_data(file_name)
+            json_file = File.read(self.get_resource_file(file_name))
+            return JSON.parse(json_file)
+        end
+
+        def self.write_pretty_json_data(filename, data)
+            opts = { indent: "  ", space: " ", object_nl: "\n", array_nl: "\n" }
+            File.write(self.get_resource_file(filename), JSON.pretty_generate(json_data, opts) + "\n")
+        end
 
         # @param [Object] target entity
         # @param [String] name of the attribute dictionary
