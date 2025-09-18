@@ -6,7 +6,6 @@
 #  copyright Adam Silver © 2025 all rights reserved
 
 require 'sketchup.rb'
-require 'json'
 require_relative 'drawer'
 require_relative 'box_shape'
 require_relative 'units'
