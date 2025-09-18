@@ -17,7 +17,7 @@ module AdamExtensions
         # @return [File object] target entity
         def self.get_resource_file(file_name)
             base_dir = __dir__.sub("box_to_drawer", "")
-            return File.join(base_dir, "/resources", file_name)
+            return File.join(base_dir, "/Resources", file_name)
         end
 
         def self.get_json_data(file_name)

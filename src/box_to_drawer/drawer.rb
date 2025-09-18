@@ -55,9 +55,10 @@ module AdamExtensions
                 keys = [:sheet_thickness, :dado_thickness, :dado_depth, :hidden_dado]
                 return false unless keys.all? {|k| data.key?(k)}
                 return false if data.values.include?(nil)
-                @@errors = Utils::get_json_data("errors.json") if @@errors.nil?
+                @@errors = Utils::get_json_data("limits.json") if @@errors.nil?
                 units_limits = @@errors["dimension_limits"][Units::units_type]
                 units_notation = units_limits["json<units_notation>"]
+
                 # test sheet thickness
                 #limit_str = units_limits["json<sheet_thickness_min>"]
                 #limit = Units::in_unit(Float(limit_str))
@@ -73,6 +74,7 @@ module AdamExtensions
                 #    UI.messagebox(err_string)
                 #    return false
                 #end
+
                 # test dado thickness vs sheet thickness
                 if data[:dado_thickness] > data[:sheet_thickness]
                     err_string = @@errors[Units::local]["dado_greaterthan_sheet"]
