@@ -11,6 +11,7 @@ require_relative 'box_shape'
 require_relative 'units'
 require_relative 'utils'
 require_relative 'sel_observer'
+require_relative 'err_handler'
 
 
 module AdamExtensions
