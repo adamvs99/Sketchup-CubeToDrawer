@@ -1,0 +1,8 @@
+"dado_greaterthan_sheet"="Dado must be less than sheet thickness";
+"exceed_max_sheet"="Sheet thickness must be less than or equal to ";
+"exceed_min_sheet"="Sheet thickness must be greater than or equal to ";
+"exceed_min_dado"="Dado thickness must be greater than or equal to ";
+"exceed_recommended_dado_width"="Dado thickness should be 20% of sheet thickness or greater than ";
+"exceed_recommended_dado_depth"="Dado depth should be 80% of sheet thickness or less than ";
+"yes_no_proceed"="Proceed with this operation?";
+
