@@ -78,7 +78,7 @@ module AdamExtensions
 
                 # test dado thickness vs sheet thickness
                 if data[:dado_thickness] > data[:sheet_thickness]
-                    err_string = ErrHander::instance["dado_greaterthan_sheet"]
+                    err_string = ErrHandler::instance["dado_greaterthan_sheet"]
                     UI.messagebox(err_string)
                     return false
                 end
