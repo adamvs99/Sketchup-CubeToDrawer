@@ -4,7 +4,17 @@
         <title>Box to Drawer Parameters</title>
         <style>
             body { font-family: sans-serif; }
-            button { padding: 10px 20px; }
+            button {
+                padding: 10px 15px;
+                border-radius: 10px;
+            }
+            button:focus {
+                background-color: #23019b;
+                color: white;
+            }
+            button:hover {
+                background-color: #ddddff;
+            }
             .center {
                 text-align: center;
                 border: 3px solid green;
@@ -63,7 +73,7 @@
         <p>
             <button onclick="sendDataToSketchUp('defaults')" id="save_as_defaults" tabindex="6">Save As Defaults</button>
             <button onclick="sendDataToSketchUp('data')" id="update_button" tabindex="5">Update</button>
-            <button onclick="sendDataToSketchUp('quit')" id="update_button" tabindex="-1">Cancel</button>
+            <button onclick="sendDataToSketchUp('quit')" id="quit_button" tabindex="-1">Cancel</button>
         </p>
     </div>
     <div class="images">

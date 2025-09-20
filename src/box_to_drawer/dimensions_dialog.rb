@@ -97,7 +97,7 @@ module AdamExtensions
                     #UI.start_timer(0, false) { DimensionsDialog.close }
                 }
                 @dialog.set_file(Utils::get_resource_file("dimensions.html"))
-                @dialog.set_size(400, 540)
+                @dialog.set_size(380, 490)
 
                 @dialog.add_action_callback("putstr") do |action_context, str|
                     puts str
