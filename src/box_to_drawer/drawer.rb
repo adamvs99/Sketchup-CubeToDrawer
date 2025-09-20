@@ -92,15 +92,15 @@ module AdamExtensions
                 # test limits of dado depth & thickness
                 limit = Float(data[:sheet_thickness] * 0.2)
                 limit_str = (Units::in_to_current_units_type(data[:sheet_thickness] * 0.2)).round(2).to_s
-                proceed = " " + ErrHander::instance["yes_no_proceed"]
                 if data[:dado_thickness] < limit
-                    err_string = ErrHander::instance["exceed_recommended_dado_width"] + limit_str + units_notation + proceed
+                    proceed = " " + ErrHandler::instance["yes_no_proceed"]
+                    err_string = ErrHandler::instance["exceed_recommended_dado_width"] + limit_str + units_notation + proceed
                     return UI.messagebox(err_string, MB_YESNO) == IDYES
                 end
                 limit = Float(data[:sheet_thickness] * 0.8)
-                limit_str = (Units::in_to_current_units_type(data[:sheet_thickness] * 0.8)).round(2).to_s
+                limit_str = (Units::in_to_current_units_type(limit)).round(2).to_s
                 if data[:dado_depth] > data[:sheet_thickness] * 0.8
-                    err_string = ErrHander::instance["exceed_recommended_dado_depth"] + limit_str + units_notation + proceed
+                    err_string = ErrHandler::instance["exceed_recommended_dado_depth"] + limit_str + units_notation + proceed
                     return UI.messagebox(err_string, MB_YESNO) == IDYES
                 end
                 true
