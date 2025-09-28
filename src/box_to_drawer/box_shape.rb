@@ -81,6 +81,23 @@ module AdamExtensions
                 @_box_map.size == 6
             end
 
+            def origin
+                pts = @_box_map["bottom"][:face_points]
+                [pts.min_x, pts.min_y, pts.min_z]
+            end
+
+            def width
+                @_box_map["bottom"][:face_points].width
+            end
+
+            def depth
+                @_box_map["bottom"][:face_points].depth
+            end
+
+            def height
+                @_box_map["front"][:face_points].height
+            end
+
             def _prnt
                 @_box_map.each do |face, data|
                     puts face.ljust(8)   +   (data[:face_points].points[0]).to_s.ljust(22)
