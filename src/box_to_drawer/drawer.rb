@@ -293,7 +293,11 @@ module AdamExtensions
                 group_data = {"su-obj<sheet_thickness>": sheet_thickness,
                               "su-obj<dado_thickness>":  dado_thickness,
                               "su-obj<dado_depth>":      dado_depth,
-                              "su-obj<hidden_dado>":     hidden_dado }
+                              "su-obj<hidden_dado>":     hidden_dado,
+                              "su-obj<origin>":          Geom::Point3d.new(@face_map.origin),
+                              "su-obj<width>":           @face_map.width,
+                              "su-obj<depth>":           @face_map.depth,
+                              "su-obj<height>":          @face_map.height}
                 model = Sketchup.active_model
                 bounding_group = model.entities.add_group
                 @current_groups.each do |g|
