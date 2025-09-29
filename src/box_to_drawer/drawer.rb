@@ -6,6 +6,7 @@
 #  copyright Adam Silver © 2025 all rights reserved
 
 require 'sketchup.rb'
+require 'securerandom'
 require_relative 'box_shape'
 require_relative 'rectangle'
 require_relative 'units'
@@ -297,7 +298,8 @@ module AdamExtensions
                               "su-obj<origin>":          Geom::Point3d.new(@face_map.origin),
                               "su-obj<width>":           @face_map.width,
                               "su-obj<depth>":           @face_map.depth,
-                              "su-obj<height>":          @face_map.height}
+                              "su-obj<height>":          @face_map.height,
+                              "su-obj<guid>":            SecureRandom.uuid}
                 model = Sketchup.active_model
                 bounding_group = model.entities.add_group
                 @current_groups.each do |g|
