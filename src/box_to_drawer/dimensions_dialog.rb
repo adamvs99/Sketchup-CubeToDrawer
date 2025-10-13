@@ -161,6 +161,10 @@ module AdamExtensions
                     _update_dialog_inputs
                 end
 
+                @dialog.add_action_callback("new_drawer_type") do |action_context, value|
+
+                end
+
                 @dialog.set_position(300, 300) # Center the @dialog on the screen
                 @dialog.show # Display the dialog
                 # Ruby callback that JavaScript can trigger

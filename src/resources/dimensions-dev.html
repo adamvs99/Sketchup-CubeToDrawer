@@ -4,7 +4,14 @@
         <title>Box to Drawer Parameters</title>
         <style>
             body { font-family: sans-serif; }
-            button { padding: 10px 20px; }
+            button {
+                padding: 10px 15px;
+                border-radius: 10px;
+            }
+            button:focus {
+                background-color: #23019b;
+                color: white;
+            }
             .center {
                 text-align: center;
                 border: 3px solid green;
@@ -26,13 +33,13 @@
             .images {
                 vertical-align: middle;
                 horiz-align: center;
-                height: 60%;
+                height: 120px;
                 margin: auto;
                 margin-top: 10px;
-                width: 60%;
+                width: 120px;
                 position: relative;
             }
-            img { display: none; }
+            img { display: none;}
         </style>
     </head>
     <body>
@@ -54,16 +61,24 @@
             <input class="center_editable" type="text" id="dado_depth" name="dado_depth" tabindex="3">
             <input class="unit_noneditable" type="text" id="dado_depth_units" name="dado_depth_units" readonly="readonly" tabindex="-1">
         </p>
-
+        <p>
+            <label for="drawer_type_select">Drawer Type:</label>
+            <select id="drawer_type_select" name="myDropdownName">
+                <option value="option1">Super Simple</option>
+                <option value="option2">Pocket Screw</option>
+                <option value="option3">Super Drawer</option>
+            </select>
+        </p>
+        <!--
         <p>
             <label for="hidden_dado">Hidden Dado:</label>
             <input class="center_editable" type="checkbox" id="hidden_dado" name="hidden_dado" value="hidden_dado" tabindex="4">
         </p>
-
+        -->
         <p>
             <button onclick="sendDataToSketchUp('defaults')" id="save_as_defaults" tabindex="6">Save As Defaults</button>
             <button onclick="sendDataToSketchUp('data')" id="update_button" tabindex="5">Update</button>
-            <button onclick="sendDataToSketchUp('quit')" id="update_button" tabindex="-1">Cancel</button>
+            <button onclick="sendDataToSketchUp('quit')" id="quit_button" tabindex="-1">Cancel</button>
         </p>
     </div>
     <div class="images">
@@ -116,6 +131,10 @@
         document.getElementById("dado_depth").addEventListener('focusout', function() {
             document.getElementById("dado_depth_img").style.display = "none";
             inputNumberFormat("dado_depth");
+        });
+        
+        document.getElementById("drawer_type_select").addEventListener("change", (event) => {
+            sketchup.new_drawer_type(event.target.value);
         });
 
         // Live validation: turn text red on invalid input and disable Update
