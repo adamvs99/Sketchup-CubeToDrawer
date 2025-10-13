@@ -56,7 +56,7 @@ module AdamExtensions
 
             end # def create_side_front_back_panels
 
-        end #class UberDrawer
+        end #class SimpleDrawer
     end # module Drawer
 end # module AdamExtensions
 

@@ -18,12 +18,12 @@ module AdamExtensions
 
             @@drawers = []
             @@limits = nil
-            @@drawer_type = "uber_drawer"
+            @@drawer_type = "advanced_dado_drawer"
 
             def self.drawer_factory(box_group)
-                require_relative 'uber_drawer'
+                require_relative 'advanced_dado_drawer'
                 return nil unless box_group.is_a?(Sketchup::Group)
-                return UberDrawer.new(box_group) if @@drawer_type == "uber_drawer"
+                return AdvancedDadoDrawer.new(box_group) if @@drawer_type == "advanced_dado_drawer"
                 return nil
             end
             #@param [group] the group to check

@@ -1,5 +1,5 @@
 #
-#  uber_drawer.rb
+#  advanced_dado_drawer.rb
 #
 #
 #  Created by Adam Silver on 10/5/25.
@@ -12,7 +12,7 @@ require_relative 'rectangle'
 module AdamExtensions
 
     module Drawer
-        class UberDrawer < Drawer
+        class AdvancedDadoDrawer < Drawer
             def initialize(box_group)
                 super(box_group)
             end
@@ -165,7 +165,7 @@ module AdamExtensions
                 model.commit_operation  # Slice Bottom Dado
             end # def create_side_front_back_panels
 
-        end #class UberDrawer
+        end #class AdvancedDadoDrawer
     end # module Drawer
 end # module AdamExtensions
 
