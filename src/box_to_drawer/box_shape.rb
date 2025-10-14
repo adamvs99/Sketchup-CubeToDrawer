@@ -82,36 +82,36 @@ module AdamExtensions
             end
 
             def origin
-                pts = @_box_map["bottom"][:face_points]
+                pts = @_box_map["bottom"][:face_rect]
                 [pts.min_x, pts.min_y, pts.min_z]
             end
 
             def width
-                @_box_map["bottom"][:face_points].width
+                @_box_map["bottom"][:face_rect].width
             end
 
             def depth
-                @_box_map["bottom"][:face_points].depth
+                @_box_map["bottom"][:face_rect].depth
             end
 
             def height
-                @_box_map["front"][:face_points].height
+                @_box_map["front"][:face_rect].height
             end
 
             def _prnt
                 @_box_map.each do |face, data|
-                    puts face.ljust(8)   +   (data[:face_points].points[0]).to_s.ljust(22)
-                    puts "".ljust(8) +   (data[:face_points].points[1]).to_s.ljust(22)
-                    puts "".ljust(8) +   (data[:face_points].points[2]).to_s.ljust(22)
-                    puts "".ljust(8) +   (data[:face_points].points[3]).to_s.ljust(22)
+                    puts face.ljust(8)   +   (data[:face_rect].points[0]).to_s.ljust(22)
+                    puts "".ljust(8) +   (data[:face_rect].points[1]).to_s.ljust(22)
+                    puts "".ljust(8) +   (data[:face_rect].points[2]).to_s.ljust(22)
+                    puts "".ljust(8) +   (data[:face_rect].points[3]).to_s.ljust(22)
                 end
             end
             def _loading(key_1, key_2, face_points, plane)
                 # this loads the initial values into both keys, e.g., "top", "bottom",
                 # and returns 'true' meaning it WAS loading
                 return false if @_box_map.key?(key_1) && @_box_map.key?(key_2)
-                @_box_map[key_1] = {"face_points": face_points, "plane": plane}
-                @_box_map[key_2] = {"face_points": face_points, "plane": plane}
+                @_box_map[key_1] = {"face_rect": face_points, "plane": plane}
+                @_box_map[key_2] = {"face_rect": face_points, "plane": plane}
                 true
             end #_loading
 
@@ -123,10 +123,10 @@ module AdamExtensions
                 # would replace the first of the key pair because it's 'plane',
                 # or Z plane in this case is less than the "top" plane.
                 if plane < @_box_map[key_1][:plane]
-                    @_box_map[key_1][:face_points] = face_points
+                    @_box_map[key_1][:face_rect] = face_points
                     @_box_map[key_1][:plane] = plane
                 elsif plane > @_box_map[key_2][:plane]
-                    @_box_map[key_2][:face_points] = face_points
+                    @_box_map[key_2][:face_rect] = face_points
                     @_box_map[key_2][:plane] = plane
                 end
             end #_sort_faces
@@ -135,13 +135,16 @@ module AdamExtensions
                 @_box_map.key?(key)
             end
 
+            def face(which_face)
+                @_box_map[which_face]
+            end
             def face_points(which_face)
                 return [] unless @_box_map.key?(which_face)
-                @_box_map[which_face][:face_points].points
+                @_box_map[which_face][:face_rect].points
             end # face_points
 
             def to_rect_copy(which_face, x=0, y=0, z=0)
-                rect = @_box_map[which_face][:face_points]
+                rect = @_box_map[which_face][:face_rect]
                 return GeoUtil::Rect.new([]) if rect.empty?
                 rect.copy(x, y, z)
             end
