@@ -69,12 +69,6 @@
                 <option value="advanced_dado_drawer">Super Drawer</option>
             </select>
         </p>
-        <!--
-        <p>
-            <label for="hidden_dado">Hidden Dado:</label>
-            <input class="center_editable" type="checkbox" id="hidden_dado" name="hidden_dado" value="hidden_dado" tabindex="4">
-        </p>
-        -->
         <p>
             <button onclick="sendDataToSketchUp('defaults')" id="save_as_defaults" tabindex="6">Save As Defaults</button>
             <button onclick="sendDataToSketchUp('data')" id="update_button" tabindex="5">Update</button>
@@ -91,14 +85,12 @@
             var sheetThickness = document.getElementById('sheet_thickness').value;
             var dadoWidth = document.getElementById('dado_thickness').value;
             var dadoDepth = document.getElementById('dado_depth').value;
-            //var hiddenDado = document.getElementById('hidden_dado').checked;
-            var hiddenDado = false;
 
             if (how == 'defaults') {
-                sketchup.updateDefaultsValues(sheetThickness, dadoWidth, dadoDepth, hiddenDado);
+                sketchup.updateDefaultsValues(sheetThickness, dadoWidth, dadoDepth);
             }
             else if (how == 'data'){
-                sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth, hiddenDado);
+                sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth);
             }// 'updateDialogValues' is a Ruby callback
             else if (how == 'quit') {
                 sketchup.closeDialog();
@@ -194,9 +186,6 @@
             updateButtonState();
         }
 
-        //document.getElementById("hidden_dado").addEventListener('change', function() {
-        //    sketchup.updateHiddenDado(this.checked)
-        //});
         document.addEventListener('DOMContentLoaded', function() {
             sketchup.dom_loaded();
         });

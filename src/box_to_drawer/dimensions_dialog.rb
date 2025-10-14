@@ -56,8 +56,7 @@ module AdamExtensions
             def initialize
                 @selected_drawer_data = {:sheet_thickness=>[], :sheet_thickness_default=>0.0,
                                          :dado_thickness=>[], :dado_thickness_default=>0.0,
-                                         :dado_depth=>[], :dado_depth_default=>0.0,
-                                         :hidden_dado=>false}
+                                         :dado_depth=>[], :dado_depth_default=>0.0}
                 @dialog = nil
                 SelectObserver::instance.add_observer(self, :update_selected_group_data)
                 _initialize_units
@@ -103,7 +102,7 @@ module AdamExtensions
                     puts str
                 end
 
-                @dialog.add_action_callback("updateDefaultsValues") do |action_context, sheet_thickness, dado_thickness, dado_depth, hidden_dado|
+                @dialog.add_action_callback("updateDefaultsValues") do |action_context, sheet_thickness, dado_thickness, dado_depth|
                     begin
                         sheet_thickness = Float(sheet_thickness)
                         dado_thickness = Float(dado_thickness)
@@ -119,7 +118,7 @@ module AdamExtensions
                     Utils::write_pretty_json_data("nv_data.json", json_data)
                 end
                 # Ruby callback that JavaScript can trigger
-                @dialog.add_action_callback("updateDimensionsValues") do |action_context, sheet_thickness, dado_thickness, dado_depth, hidden_dado|
+                @dialog.add_action_callback("updateDimensionsValues") do |action_context, sheet_thickness, dado_thickness, dado_depth|
                     valid_values = false
                     begin
                         sheet_thickness = Float(sheet_thickness)
@@ -144,8 +143,7 @@ module AdamExtensions
                     end
                     data = { :sheet_thickness => sheet_thickness,
                              :dado_thickness => dado_thickness,
-                             :dado_depth => dado_depth,
-                             :hidden_dado => hidden_dado }
+                             :dado_depth => dado_depth }
                     if Drawer::Drawer.is_valid_drawer_data?(data)
                         Drawer::Drawer.selection_to_drawers( "erase,update", data)
                         UI.start_timer(0, false) { DimensionsDialog.close }
@@ -162,7 +160,7 @@ module AdamExtensions
                 end
 
                 @dialog.add_action_callback("new_drawer_type") do |action_context, value|
-
+                    Drawer::Drawer.new_type_selection(value)
                 end
 
                 @dialog.set_position(300, 300) # Center the @dialog on the screen
@@ -220,6 +218,8 @@ module AdamExtensions
                 @dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
                 @dialog.execute_script("document.getElementById('dado_thickness_img').src = '#{dado_thickness_image}';")
                 @dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
+
+                @dialog.execute_script("document.getElementById('drawer_type_select').value = '#{Drawer::Drawer.drawer_type}';")
             end
 
             def _clear_selected_drawer_data

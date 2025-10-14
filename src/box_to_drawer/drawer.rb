@@ -20,13 +20,26 @@ module AdamExtensions
             @@limits = nil
             @@drawer_type = "advanced_dado_drawer"
 
+            def self.new_type_selection(type)
+                return if type==@@drawer_type
+                @@drawer_type = type
+            end
             def self.drawer_factory(box_group)
-                require_relative 'advanced_dado_drawer'
                 return nil unless box_group.is_a?(Sketchup::Group)
-                return AdvancedDadoDrawer.new(box_group) if @@drawer_type == "advanced_dado_drawer"
+                case @@drawer_type
+                when "simple_drawer"
+                    require_relative 'simple_drawer'
+                    return SimpleDrawer.new(box_group)
+                when "pocket_screw_drawer"
+                    require_relative 'pocket_screw_drawer'
+                    return PocketScrewDrawer.new(box_group)
+                when "advanced_dado_drawer"
+                    require_relative 'advanced_dado_drawer'
+                    return AdvancedDadoDrawer.new(box_group)
+                end
                 return nil
             end
-            #@param [group] the group to check
+
             #@param [group] the group to check
             def self.is_drawer_group?(group)
                 return false unless group.is_a?(Sketchup::Group)
@@ -58,9 +71,13 @@ module AdamExtensions
                 "avs_drawer_data"
             end
 
+            def self.drawer_type
+                @@drawer_type
+            end
+
             def self.is_valid_drawer_data?(data)
                 return false unless data.is_a?(Hash)
-                keys = [:sheet_thickness, :dado_thickness, :dado_depth, :hidden_dado]
+                keys = [:sheet_thickness, :dado_thickness, :dado_depth]
                 return false unless keys.all? {|k| data.key?(k)}
                 return false if data.values.include?(nil)
                 @@limits = Utils::get_json_data("limits.json") if @@limits.nil?
@@ -161,14 +178,12 @@ module AdamExtensions
             def _create_bounding_group(data)
                 # gate this function if object not valid
                 return unless valid?
-                sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
-                                                                            data[:dado_thickness],
-                                                                            data[:dado_depth],
-                                                                            data["hidden_dado"]]
+                sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
+                                                               data[:dado_thickness],
+                                                               data[:dado_depth]]
                 group_data = {"su-obj<sheet_thickness>": sheet_thickness,
                               "su-obj<dado_thickness>":  dado_thickness,
                               "su-obj<dado_depth>":      dado_depth,
-                              "su-obj<hidden_dado>":     hidden_dado,
                               "su-obj<origin>":          Geom::Point3d.new(@face_map.origin),
                               "su-obj<width>":           @face_map.width,
                               "su-obj<depth>":           @face_map.depth,

@@ -22,10 +22,9 @@ module AdamExtensions
             def _create_bottom_panel(data)
                 # gate this function if object not valid
                 return unless valid?
-                sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
+                sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
                                                                             data[:dado_thickness],
-                                                                            data[:dado_depth],
-                                                                            data["hidden_dado"]]
+                                                                            data[:dado_depth]]
                 model = Sketchup.active_model
                 bottom_rect = @face_map.to_rect_copy("bottom", 0, 0, sheet_thickness)
             end #_create_bottom_panel
@@ -33,10 +32,9 @@ module AdamExtensions
             def _create_left_right_panels(data)
                 # gate this function if object not valid
                 return unless valid?
-                sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
+                sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
                                                                             data[:dado_thickness],
-                                                                            data[:dado_depth],
-                                                                            data["hidden_dado"]]
+                                                                            data[:dado_depth]]
 
                 side_rect = @face_map.to_rect_copy("right")
 
@@ -47,10 +45,9 @@ module AdamExtensions
             def _create_front_back_panels(data)
                 # gate this function if object not valid
                 return unless valid?
-                sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
+                sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
                                                                             data[:dado_thickness],
-                                                                            data[:dado_depth],
-                                                                            data["hidden_dado"]]
+                                                                            data[:dado_depth]]
                 model = Sketchup.active_model
                 base_rect = @face_map.to_rect_copy("front")
 

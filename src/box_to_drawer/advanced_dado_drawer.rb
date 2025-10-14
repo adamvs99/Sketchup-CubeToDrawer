@@ -22,10 +22,9 @@ module AdamExtensions
             def _create_bottom_panel(data)
                 # gate this function if object not valid
                 return unless valid?
-                sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
-                                                                            data[:dado_thickness],
-                                                                            data[:dado_depth],
-                                                                            data["hidden_dado"]]
+                sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
+                                                               data[:dado_thickness],
+                                                               data[:dado_depth]]
                 model = Sketchup.active_model
                 bottom_rect = @face_map.to_rect_copy("bottom", 0, 0, sheet_thickness)
                 bottom_upper_shrink = dado_depth-sheet_thickness
@@ -68,10 +67,9 @@ module AdamExtensions
             def _create_left_right_panels(data)
                 # gate this function if object not valid
                 return unless valid?
-                sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
-                                                                            data[:dado_thickness],
-                                                                            data[:dado_depth],
-                                                                            data["hidden_dado"]]
+                sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
+                                                               data[:dado_thickness],
+                                                               data[:dado_depth]]
 
                 side_rect = @face_map.to_rect_copy("right")
 
@@ -112,17 +110,15 @@ module AdamExtensions
                 model.commit_operation
 
                 # create a copy .. move to left side .. rotate 180 degrees
-                front_rect = @face_map.to_rect_copy("front")
-                @current_groups << Utils.copy_move_rotate_group(right_side_group, -front_rect.width + sheet_thickness, 0, 0, Z_AXIS, 180)
+                @current_groups << Utils.copy_move_rotate_group(right_side_group, -@face_map.width + sheet_thickness, 0, 0, Z_AXIS, 180)
             end # def create_side_panels
 
             def _create_front_back_panels(data)
                 # gate this function if object not valid
                 return unless valid?
-                sheet_thickness, dado_thickness, dado_depth, hidden_dado = [data[:sheet_thickness],
-                                                                            data[:dado_thickness],
-                                                                            data[:dado_depth],
-                                                                            data["hidden_dado"]]
+                sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
+                                                               data[:dado_thickness],
+                                                               data[:dado_depth]]
                 model = Sketchup.active_model
                 base_rect = @face_map.to_rect_copy("front")
 
@@ -160,8 +156,7 @@ module AdamExtensions
                 @current_groups << front_group
                 model.commit_operation  # Create Front Panel
 
-                side_rect = @face_map.to_rect_copy("left")
-                @current_groups << Utils.copy_move_rotate_group(front_group, 0, side_rect.depth - sheet_thickness, 0, Z_AXIS, 180)
+                @current_groups << Utils.copy_move_rotate_group(front_group, 0, @face_map.depth - sheet_thickness, 0, Z_AXIS, 180)
                 model.commit_operation  # Slice Bottom Dado
             end # def create_side_front_back_panels
 
