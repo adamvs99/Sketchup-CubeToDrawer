@@ -36,8 +36,9 @@ module AdamExtensions
                 when "advanced_dado_drawer"
                     require_relative 'advanced_dado_drawer'
                     return AdvancedDadoDrawer.new(box_group)
+                else
+                    return nil
                 end
-                return nil
             end
 
             #@param [group] the group to check
