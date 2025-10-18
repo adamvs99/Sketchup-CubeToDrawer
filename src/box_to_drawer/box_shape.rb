@@ -1,5 +1,5 @@
 #
-#  cubic_shape.rb
+#  box_shape.rb
 #
 #
 #  Created by Adam Silver on 08/06/25.
@@ -18,6 +18,8 @@ module AdamExtensions
         # Note: all units are in imperial (decimal inch)
         #----------------------------------------------------------------------------------------------------------------------
         class BoxMap
+
+            @@keys = ["bottom", "top", "left", "right", "front", "back"]
             def initialize(group)
                 @_box_map = nil
                 return unless group.is_a? Sketchup::Group
@@ -37,6 +39,10 @@ module AdamExtensions
                     end
                 end
             end # def initialize
+
+            def self.keyset
+                @@keys
+            end
 
             def self.is_xyz_aligned_box?(box_group)
                 return false unless box_group&.is_a? Sketchup::Group
@@ -76,8 +82,7 @@ module AdamExtensions
             end
 
             def valid?
-                keys = ["bottom", "top", "left", "right", "front", "back"]
-                return false unless keys.all? {|k| @_box_map.key?(k)}
+                return false unless BoxShape::BoxMap.keyset.all? {|k| @_box_map.key?(k)}
                 @_box_map.size == 6
             end
 
