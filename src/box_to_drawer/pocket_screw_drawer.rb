@@ -7,6 +7,7 @@
 
 require_relative 'drawer'
 require_relative 'rectangle'
+require_relative 'pocket_screw_group'
 
 
 module AdamExtensions
@@ -25,21 +26,52 @@ module AdamExtensions
                 sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
                                                                             data[:dado_thickness],
                                                                             data[:dado_depth]]
+                bottom_upper_shrink = dado_depth-sheet_thickness
+
                 model = Sketchup.active_model
                 bottom_rect = @face_map.to_rect_copy("bottom", 0, 0, sheet_thickness)
+                bottom_rect.expand(bottom_upper_shrink)
+                bottom_rect.change_edge("back", bottom_upper_shrink)
+                model.start_operation("Create Drawer Bottom Group", true)
+                bottom_group = model.entities.add_group
+                bottom_face = bottom_group.entities.add_face(bottom_rect.points)
+                bottom_face.reverse! if bottom_face.normal.z > 0
+                bottom_face.pushpull(data[:dado_thickness])
+                @current_groups << bottom_group
+                model.commit_operation
             end #_create_bottom_panel
 
             def _create_left_right_panels(data)
                 # gate this function if object not valid
                 return unless valid?
                 sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
-                                                                            data[:dado_thickness],
-                                                                            data[:dado_depth]]
+                                                               data[:dado_thickness],
+                                                               data[:dado_depth]]
 
                 side_rect = @face_map.to_rect_copy("right")
-
-                # create a face of the cut elongated box item just back of the 'front' of the initial box
                 model = Sketchup.active_model
+                model.start_operation("Create Side Right Group", true)
+                right_side_group = model.entities.add_group
+                side_face = right_side_group.entities.add_face(side_rect.points)
+                side_face.reverse! if side_face.normal.x > 0
+                side_face.pushpull(sheet_thickness)
+                model.commit_operation
+
+                # cut the bottom dado
+                origin = Geom::Point3d.new(side_rect.min_x - sheet_thickness - dado_depth,
+                                           side_rect.min_y - dado_thickness,
+                                           side_rect.min_z + sheet_thickness - dado_thickness)
+                cut_rect = GeoUtil::WDHRect.new(origin, dado_depth * 2, 0, dado_thickness)
+                cut_length = side_rect.depth+sheet_thickness
+                # cut bottom dado
+                model.start_operation("Side Right Bottom Dado", true)
+                right_side_group = Utils.cut_channel(model, right_side_group, cut_rect, cut_length, "y", "lt")
+                model.commit_operation
+                # create a copy .. move to left side .. rotate 180 degrees
+                @current_groups << right_side_group
+                @current_groups << Utils.copy_move_rotate_group(right_side_group, -@face_map.width + sheet_thickness, 0, 0, Z_AXIS, 180)
+
+                # put in pocket screw holes
             end # def create_side_panels
 
             def _create_front_back_panels(data)
@@ -52,6 +84,12 @@ module AdamExtensions
                 base_rect = @face_map.to_rect_copy("front")
 
             end # def create_side_front_back_panels
+
+            private
+
+            def _generate_pocket_z_start_pts
+
+            end
 
         end #class PocketScrewDrawer
     end # module Drawer
