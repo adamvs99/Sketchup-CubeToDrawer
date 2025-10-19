@@ -23,15 +23,13 @@ module AdamExtensions
             def _create_bottom_panel(data)
                 # gate this function if object not valid
                 return unless valid?
-                sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
-                                                                            data[:dado_thickness],
-                                                                            data[:dado_depth]]
+                sheet_thickness, dado_depth = [data[:sheet_thickness], data[:dado_depth]]
                 bottom_upper_shrink = dado_depth-sheet_thickness
 
                 model = Sketchup.active_model
                 bottom_rect = @face_map.to_rect_copy("bottom", 0, 0, sheet_thickness)
                 bottom_rect.expand(bottom_upper_shrink)
-                bottom_rect.change_edge("back", bottom_upper_shrink)
+                bottom_rect.change_edge("front", -bottom_upper_shrink)
                 model.start_operation("Create Drawer Bottom Group", true)
                 bottom_group = model.entities.add_group
                 bottom_face = bottom_group.entities.add_face(bottom_rect.points)
@@ -78,10 +76,29 @@ module AdamExtensions
                 # gate this function if object not valid
                 return unless valid?
                 sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
-                                                                            data[:dado_thickness],
-                                                                            data[:dado_depth]]
+                                                               data[:dado_thickness],
+                                                               data[:dado_depth]]
                 model = Sketchup.active_model
                 base_rect = @face_map.to_rect_copy("front")
+                front_rect = base_rect.copy()
+
+                model.start_operation("Create front Panel", true)
+                front_rect.expand(-sheet_thickness, 0, 0)
+                front_group = model.entities.add_group
+                front_face = front_group.entities.add_face(front_rect.points)
+                front_face.reverse! if front_face.normal.y < 0
+                front_face.pushpull(sheet_thickness)
+                model.commit_operation  # Create Front Panel
+
+                model.start_operation("Slice Bottom Dado", true)
+                # cut the bottom dado
+                origin = Geom::Point3d.new(base_rect.max_x,
+                                           base_rect.min_y + sheet_thickness - dado_depth,
+                                           base_rect.min_z + sheet_thickness - dado_thickness)
+                cut_rect = GeoUtil::WDHRect.new(origin, 0, dado_depth * 2, dado_thickness)
+                cut_length = base_rect.width + sheet_thickness
+                front_group = Utils.cut_channel(model, front_group, cut_rect, cut_length, "x")
+                model.commit_operation  # Create Front Panel
 
             end # def create_side_front_back_panels
 
