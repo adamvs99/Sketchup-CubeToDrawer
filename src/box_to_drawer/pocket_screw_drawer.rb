@@ -102,7 +102,7 @@ module AdamExtensions
                 front_group = Utils.cut_channel(model, front_group, cut_rect, cut_length, "x")
                 model.commit_operation  # Create Front Panel
                 model.start_operation("Cut Pocket Holes", true)
-                @current_groups << _cut_pocket_holes(model, front_group, front_rect, "front", start_points)
+                @current_groups << _cut_pocket_holes(model, front_group, front_rect, "front", start_points, sheet_thickness)
                 model.commit_operation  # Create Front Panel
 
             end # def create_side_front_back_panels
@@ -124,12 +124,12 @@ module AdamExtensions
                 start_points
             end
 
-            def _cut_pocket_holes(model, group, rect, box_face, z_start_pts)
+            def _cut_pocket_holes(model, group, rect, box_face, z_start_pts, sheet_thickness)
                 z_start_pts.each do |z_pos|
                     start_pt = Geom::Point3d.new(rect.min_x, rect.min_y, z_pos)
-                    pocket_screw__group = PocketScrew::PocketScrewGroup.create(start_pt, box_face, "neg")
-                    next unless pocket_screw__group
-                    cut_group = pocket_screw__group.position.group
+                    pocket_screw_group = PocketScrew::PocketScrewGroup.create(start_pt, box_face, sheet_thickness, "neg")
+                    next unless pocket_screw_group
+                    cut_group = pocket_screw_group.position.group
 
                 end
                 group
