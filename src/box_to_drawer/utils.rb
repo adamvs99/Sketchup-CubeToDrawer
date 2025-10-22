@@ -79,12 +79,13 @@ module AdamExtensions
                 move_params = Geom::Transformation.new(Geom::Point3d.new(x, y, z))
                 new_group.transform!(move_params)
             end
-            unless axis==0
-                rotate_params = Geom::Transformation.rotation(new_group.bounds.center, axis, angle.degrees)
-                new_group.transform!(rotate_params)
-            end
+            self.rotate(new_group, new_group.bounds.center, axis, angle) unless axis==0
             model.commit_operation
             new_group
         end # def copy_move_rotate_group
+
+        def self.rotate(group, rotate_pt, axis, angle)
+            group.transform!(Geom::Transformation.rotation(rotate_pt, axis, angle.degrees))
+        end
     end # Utils
 end # AdamExtensions
