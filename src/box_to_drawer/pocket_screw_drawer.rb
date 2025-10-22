@@ -80,8 +80,10 @@ module AdamExtensions
                                                                data[:dado_depth]]
                 model = Sketchup.active_model
                 base_rect = @face_map.to_rect_copy("front")
-                front_rect = base_rect.copy()
+                # calculate pocket hole Z positions
+                start_points = _generate_pocket_z_start_pts(base_rect.max_z, base_rect.height - sheet_thickness)
 
+                front_rect = base_rect.copy()
                 model.start_operation("Create front Panel", true)
                 front_rect.expand(-sheet_thickness, 0, 0)
                 front_group = model.entities.add_group
@@ -99,13 +101,38 @@ module AdamExtensions
                 cut_length = base_rect.width + sheet_thickness
                 front_group = Utils.cut_channel(model, front_group, cut_rect, cut_length, "x")
                 model.commit_operation  # Create Front Panel
+                model.start_operation("Cut Pocket Holes", true)
+                @current_groups << _cut_pocket_holes(model, front_group, front_rect, "front", start_points)
+                model.commit_operation  # Create Front Panel
 
             end # def create_side_front_back_panels
 
             private
 
-            def _generate_pocket_z_start_pts
+            def _generate_pocket_z_start_pts(z_mx, z_distance)
+                start_points = []
+                if z_distance <= 3.0
+                    start_points << z_mx - z_distance / 2.0
+                elsif z_distance <= 4.0
+                    start_points << z_mx - 1.0
+                    start_points << z_mx - z_distance + 1.0
+                else z_distance <= 10.0
+                    start_points << z_mx - 1.0
+                    start_points << z_mx - z_distance / 2.0
+                    start_points << z_mx - z_distance + 1.0
+                end
+                start_points
+            end
 
+            def _cut_pocket_holes(model, group, rect, box_face, z_start_pts)
+                z_start_pts.each do |z_pos|
+                    start_pt = Geom::Point3d.new(rect.min_x, rect.min_y, z_pos)
+                    pocket_screw__group = PocketScrew::PocketScrewGroup.create(start_pt, box_face, "neg")
+                    next unless pocket_screw__group
+                    cut_group = pocket_screw__group.position.group
+
+                end
+                group
             end
 
         end #class PocketScrewDrawer
