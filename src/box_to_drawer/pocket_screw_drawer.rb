@@ -110,29 +110,36 @@ module AdamExtensions
             private
 
             def _generate_pocket_z_start_pts(z_mx, z_distance)
+                #TODO: improve this...
                 start_points = []
-                if z_distance <= 3.0
+                if z_distance <= 1.5
                     start_points << z_mx - z_distance / 2.0
                 elsif z_distance <= 4.0
-                    start_points << z_mx - 1.0
-                    start_points << z_mx - z_distance + 1.0
-                else z_distance <= 10.0
-                    start_points << z_mx - 1.0
-                    start_points << z_mx - z_distance / 2.0
-                    start_points << z_mx - z_distance + 1.0
+                    z_div = z_distance / 3.0
+                    start_points << z_mx - z_div
+                    start_points << z_mx - z_div * 2.0
+                else
+                    z_div = z_distance / 4.0
+                    start_points << z_mx - z_div
+                    start_points << z_mx - z_div * 2.0
+                    start_points << z_mx - z_div * 3.0
                 end
                 start_points
             end
 
-            def _cut_pocket_holes(model, group, rect, box_face, z_start_pts, sheet_thickness)
-                z_start_pts.each do |z_pos|
-                    start_pt = Geom::Point3d.new(rect.min_x, rect.min_y, z_pos)
-                    pocket_screw_group = PocketScrew::PocketScrewGroup.create(start_pt, box_face, sheet_thickness, "neg")
-                    next unless pocket_screw_group
-                    cut_group = pocket_screw_group.position.group
-
+            def _cut_pocket_holes(model, target_group, rect, box_face, z_start_pts, sheet_thickness)
+                ["neg", "pos"].each do |dir|
+                    x = dir == "neg" ? rect.min_x : rect.max_x
+                    y = dir == "neg" ? rect.min_y : rect.max_y
+                    z_start_pts.each do |z_pos|
+                        start_pt = Geom::Point3d.new(x, y, z_pos)
+                        pocket_screw_group = PocketScrew::PocketScrewGroup.create(start_pt, box_face, sheet_thickness, dir)
+                        next unless pocket_screw_group
+                        cut_group = pocket_screw_group.position.group
+                        target_group = cut_group.subtract(target_group)
+                    end
                 end
-                group
+                target_group
             end
 
         end #class PocketScrewDrawer
