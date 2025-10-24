@@ -157,7 +157,6 @@ module AdamExtensions
                 model.commit_operation  # Create Front Panel
 
                 @current_groups << Utils.copy_move_rotate_group(front_group, 0, @face_map.depth - sheet_thickness, 0, Z_AXIS, 180)
-                model.commit_operation  # Slice Bottom Dado
             end # def create_side_front_back_panels
 
         end #class AdvancedDadoDrawer
