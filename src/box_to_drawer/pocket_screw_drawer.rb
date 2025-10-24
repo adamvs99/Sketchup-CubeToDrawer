@@ -92,12 +92,11 @@ module AdamExtensions
                 front_face.pushpull(sheet_thickness)
                 model.commit_operation  # Create Front Panel
 
-                model.start_operation("Cut Pocket Holes", true)
-                @current_groups << _cut_pocket_holes(model, front_group, front_rect, "front", start_points, sheet_thickness)
-                model.commit_operation  # Create Front Panel
+                front_group = _cut_pocket_holes(model, front_group, front_rect, "front", start_points, sheet_thickness)
+
                 # for the back panel need to copy, move, and flip
                 # then reduce the bottom face by the sheet thickness
-                back_group = Utils.copy_move_rotate_group(@current_groups.last, 0, @face_map.depth - sheet_thickness, 0, Z_AXIS, 180)
+                back_group = Utils.copy_move_rotate_group(front_group, 0, @face_map.depth - sheet_thickness, 0, Z_AXIS, 180)
                 bottom_face = BoxShape::BoxMap.find_face("bottom", back_group)
                 bottom_face.reverse! if bottom_face.normal.z > 0
                 bottom_face.pushpull(-sheet_thickness)
@@ -111,7 +110,7 @@ module AdamExtensions
                                            base_rect.min_z + sheet_thickness - dado_thickness)
                 cut_rect = GeoUtil::WDHRect.new(origin, 0, dado_depth * 2, dado_thickness)
                 cut_length = base_rect.width + sheet_thickness
-                Utils.cut_channel(model, front_group, cut_rect, cut_length, "x")
+                @current_groups << Utils.cut_channel(model, front_group, cut_rect, cut_length, "x")
                 model.commit_operation  # Create Front Panel
 
             end # def create_side_front_back_panels
@@ -137,6 +136,7 @@ module AdamExtensions
             end
 
             def _cut_pocket_holes(model, target_group, rect, box_face, z_start_pts, sheet_thickness)
+                model.start_operation("Cut Pocket Holes", true)
                 ["neg", "pos"].each do |dir|
                     x = dir == "neg" ? rect.min_x : rect.max_x
                     y = dir == "neg" ? rect.min_y : rect.max_y
@@ -146,8 +146,9 @@ module AdamExtensions
                         next unless pocket_screw_obj
                         cut_group = pocket_screw_obj.position.group
                         target_group = cut_group.subtract(target_group)
-                    end
-                end
+                    end # z_start_pts
+                end # ["neg", "pos"]
+                model.commit_operation
                 target_group
             end
 
