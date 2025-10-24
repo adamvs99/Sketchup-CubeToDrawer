@@ -20,30 +20,46 @@ module AdamExtensions
         class BoxMap
 
             @@keys = ["bottom", "top", "left", "right", "front", "back"]
-            def initialize(group)
-                @_box_map = nil
-                return unless group.is_a? Sketchup::Group
-                @_box_map = Hash.new
-                faces = group.entities.grep(Sketchup::Face)
-                faces.each do |face|
-                    face_points = GeoUtil::GlobalRect.new(face, group.transformation)
-                    x_pos = face_points.points.map {|pt| pt.x}
-                    y_pos = face_points.points.map {|pt| pt.y}
-                    z_pos = face_points.points.map {|pt| pt.z}
-                    if x_pos.uniq.count <= 1 # it's a side
-                        _sort_faces("left", "right", face_points, x_pos[0]) unless _loading("left", "right", face_points, x_pos[0])
-                    elsif y_pos.uniq.count <= 1 # it's a front or back
-                        _sort_faces("front", "back", face_points, y_pos[0]) unless _loading("front", "back", face_points, y_pos[0])
-                    elsif z_pos.uniq.count <= 1 # it's a top or bottom
-                        _sort_faces("bottom", "top", face_points, z_pos[0]) unless _loading("bottom", "top", face_points, z_pos[0])
-                    end
-                end
-            end # def initialize
-
             def self.keyset
                 @@keys
             end
 
+            def self.find_face(key, group)
+                return nil unless group&.is_a? Sketchup::Group
+                xs = {face: nil, pos: nil}
+                ys = {face: nil, pos: nil}
+                zs = {face: nil, pos: nil}
+                _load = lambda { |_hash, _face, _pos, _key, _k1, _k2|
+                    if _hash[:face].nil?
+                        _hash[:face], _hash[:pos] = [_face,_pos]
+                        return nil
+                    end
+                    if _key == _k1
+                        return _pos < _hash[:pos] ? _face : _hash[:face]
+                    elsif _key == _k2
+                        return _pos > _hash[:pos] ? _face : _hash[:face]
+                    end
+                    nil
+                }
+                faces = group.entities.grep(Sketchup::Face)
+                faces.each do |face|
+                    face_points = GeoUtil::GlobalRect.new(face, group.transformation)
+                    next if face_points.empty?
+                    x_pos = face_points.points.map {|pt| pt.x}
+                    y_pos = face_points.points.map {|pt| pt.y}
+                    z_pos = face_points.points.map {|pt| pt.z}
+                    if x_pos.uniq.count <= 1 # it's a side
+                        f = _load.call(xs, face, x_pos[0], key, "left", "right")
+                        return f unless f.nil?
+                    elsif y_pos.uniq.count <= 1 # it's a front or back
+                        f = _load.call(ys, face, y_pos[0], key, "front", "back")
+                        return f unless f.nil?
+                    elsif z_pos.uniq.count <= 1 # it's a top or bottom
+                        f = _load.call(zs, face, z_pos[0], key, "bottom", "top")
+                        return f unless f.nil?
+                    end
+                end
+            end
             def self.is_xyz_aligned_box?(box_group)
                 return false unless box_group&.is_a? Sketchup::Group
                 faces = box_group.entities.grep(Sketchup::Face)
@@ -81,6 +97,27 @@ module AdamExtensions
                 [box_group, "erase", new_box_group]
             end
 
+            def initialize(group)
+                @_box_map = nil
+                return unless group.is_a? Sketchup::Group
+                @_box_map = Hash.new
+                faces = group.entities.grep(Sketchup::Face)
+                faces.each do |face|
+                    face_points = GeoUtil::GlobalRect.new(face, group.transformation)
+                    x_pos = face_points.points.map {|pt| pt.x}
+                    y_pos = face_points.points.map {|pt| pt.y}
+                    z_pos = face_points.points.map {|pt| pt.z}
+                    if x_pos.uniq.count <= 1 # it's a side
+                        _sort_faces(X_AXIS, face_points, x_pos[0]) unless _loading(X_AXIS, face_points, x_pos[0])
+                    elsif y_pos.uniq.count <= 1 # it's a front or back
+                        _sort_faces(Y_AXIS, face_points, y_pos[0]) unless _loading(Y_AXIS, face_points, y_pos[0])
+                    elsif z_pos.uniq.count <= 1 # it's a top or bottom
+                        _sort_faces(Z_AXIS, face_points, z_pos[0]) unless _loading(Z_AXIS, face_points, z_pos[0])
+                    end
+                end
+            end # def initialize
+
+
             def valid?
                 return false unless BoxShape::BoxMap.keyset.all? {|k| @_box_map.key?(k)}
                 @_box_map.size == 6
@@ -111,30 +148,6 @@ module AdamExtensions
                     puts "".ljust(8) +   (data[:face_rect].points[3]).to_s.ljust(22)
                 end
             end
-            def _loading(key_1, key_2, face_points, plane)
-                # this loads the initial values into both keys, e.g., "top", "bottom",
-                # and returns 'true' meaning it WAS loading
-                return false if @_box_map.key?(key_1) && @_box_map.key?(key_2)
-                @_box_map[key_1] = {"face_rect": face_points, "plane": plane}
-                @_box_map[key_2] = {"face_rect": face_points, "plane": plane}
-                true
-            end #_loading
-
-            def _sort_faces(key_1, key_2, face_points, plane)
-                # both keys will be the same after loading so this
-                # puts the 'opposite' key in the correct spot, by
-                # which plane is indicated. E.g. if the "top" values
-                # were loaded into both "top" and "bottom" keys the "bottom"
-                # would replace the first of the key pair because it's 'plane',
-                # or Z plane in this case is less than the "top" plane.
-                if plane < @_box_map[key_1][:plane]
-                    @_box_map[key_1][:face_rect] = face_points
-                    @_box_map[key_1][:plane] = plane
-                elsif plane > @_box_map[key_2][:plane]
-                    @_box_map[key_2][:face_rect] = face_points
-                    @_box_map[key_2][:plane] = plane
-                end
-            end #_sort_faces
 
             def key?(key)
                 @_box_map.key?(key)
@@ -153,6 +166,44 @@ module AdamExtensions
                 return GeoUtil::Rect.new([]) if rect.empty?
                 rect.copy(x, y, z)
             end
+
+            private
+
+            def _axis_to_keys(axis)
+                case axis
+                when X_AXIS; return ["left", "right"]
+                when Y_AXIS; return ["front", "back"]
+                when Z_AXIS; return ["bottom", "top"]
+                end
+                ["error", "error"]
+            end
+
+            def _loading(axis, face_points, plane)
+                key_1, key_2 = _axis_to_keys(axis)
+                # this loads the initial values into both keys, e.g., "top", "bottom",
+                # and returns 'true' meaning it WAS loading
+                return false if @_box_map.key?(key_1) && @_box_map.key?(key_2)
+                @_box_map[key_1] = {"face_rect": face_points, "plane": plane}
+                @_box_map[key_2] = {"face_rect": face_points, "plane": plane}
+                true
+            end #_loading
+
+            def _sort_faces(axis, face_points, plane)
+                # both keys will be the same after loading so this
+                # puts the 'opposite' key in the correct spot, by
+                # which plane is indicated. E.g. if the "top" values
+                # were loaded into both "top" and "bottom" keys the "bottom"
+                # would replace the first of the key pair because it's 'plane',
+                # or Z plane in this case is less than the "top" plane.
+                key_1, key_2 = _axis_to_keys(axis)
+                if plane < @_box_map[key_1][:plane]
+                    @_box_map[key_1][:face_rect] = face_points
+                    @_box_map[key_1][:plane] = plane
+                elsif plane > @_box_map[key_2][:plane]
+                    @_box_map[key_2][:face_rect] = face_points
+                    @_box_map[key_2][:plane] = plane
+                end
+            end #_sort_faces
 
         end # class BoxMap
     end # module BoxShape
