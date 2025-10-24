@@ -92,6 +92,18 @@ module AdamExtensions
                 front_face.pushpull(sheet_thickness)
                 model.commit_operation  # Create Front Panel
 
+                model.start_operation("Cut Pocket Holes", true)
+                @current_groups << _cut_pocket_holes(model, front_group, front_rect, "front", start_points, sheet_thickness)
+                model.commit_operation  # Create Front Panel
+                # for the back panel need to copy, move, and flip
+                # then reduce the bottom face by the sheet thickness
+                back_group = Utils.copy_move_rotate_group(@current_groups.last, 0, @face_map.depth - sheet_thickness, 0, Z_AXIS, 180)
+                bottom_face = BoxShape::BoxMap.find_face("bottom", back_group)
+                bottom_face.reverse! if bottom_face.normal.z > 0
+                bottom_face.pushpull(-sheet_thickness)
+                @current_groups << back_group
+
+                # now slice the bottom dado
                 model.start_operation("Slice Bottom Dado", true)
                 # cut the bottom dado
                 origin = Geom::Point3d.new(base_rect.max_x,
@@ -99,10 +111,7 @@ module AdamExtensions
                                            base_rect.min_z + sheet_thickness - dado_thickness)
                 cut_rect = GeoUtil::WDHRect.new(origin, 0, dado_depth * 2, dado_thickness)
                 cut_length = base_rect.width + sheet_thickness
-                front_group = Utils.cut_channel(model, front_group, cut_rect, cut_length, "x")
-                model.commit_operation  # Create Front Panel
-                model.start_operation("Cut Pocket Holes", true)
-                @current_groups << _cut_pocket_holes(model, front_group, front_rect, "front", start_points, sheet_thickness)
+                Utils.cut_channel(model, front_group, cut_rect, cut_length, "x")
                 model.commit_operation  # Create Front Panel
 
             end # def create_side_front_back_panels
@@ -133,9 +142,9 @@ module AdamExtensions
                     y = dir == "neg" ? rect.min_y : rect.max_y
                     z_start_pts.each do |z_pos|
                         start_pt = Geom::Point3d.new(x, y, z_pos)
-                        pocket_screw_group = PocketScrew::PocketScrewGroup.create(start_pt, box_face, sheet_thickness, dir)
-                        next unless pocket_screw_group
-                        cut_group = pocket_screw_group.position.group
+                        pocket_screw_obj = PocketScrew::PocketScrewGroup.create(start_pt, box_face, sheet_thickness, dir)
+                        next unless pocket_screw_obj
+                        cut_group = pocket_screw_obj.position.group
                         target_group = cut_group.subtract(target_group)
                     end
                 end
