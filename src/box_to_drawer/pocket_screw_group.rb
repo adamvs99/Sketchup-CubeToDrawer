@@ -78,8 +78,9 @@ module AdamExtensions
                 case @axis
                 when X_AXIS
                     Utils.rotate(cut_group, Z_AXIS, 180) if @direction < 0.0
+                    y_offset = @drawer_face == "front" ? -1.0 : 1.0
                     @start_pt.x -= @offset_back*@direction
-                    @start_pt.y -= @offset_into*@direction
+                    @start_pt.y -= @offset_into*y_offset
                 when Y_AXIS
                     Utils.rotate(cut_group, Z_AXIS, @direction * 90)
                     @start_pt.y -= @offset_back*@direction
@@ -94,8 +95,8 @@ module AdamExtensions
                 rotate_axis = @axis==X_AXIS || @axis==Y_AXIS ? Z_AXIS : X_AXIS
                 # rotate the group 15 degrees on the Z axis
                 case @drawer_face
-                when "front", "right", "bottom"; angle = -15.0
-                when "back", "left", "top";  angle = 15.0
+                when "front", "right", "bottom"; angle = 15.0 * @direction
+                when "back", "left", "top";  angle = 15.0 * @direction
                 end
                 Utils.rotate(cut_group, rotate_axis, angle)
                 self
