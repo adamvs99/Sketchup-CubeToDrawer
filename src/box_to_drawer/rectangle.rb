@@ -22,8 +22,8 @@ module AdamExtensions
             def initialize(corners)
                 # Note: units are imperial
                 corners = Array.new if corners.nil?
-                if corners.empty?
-                    @points = corners
+                if corners.empty? || corners.size != 4
+                    @points = []
                 else
                     @points = [Geom::Point3d.new(corners[0]),
                                Geom::Point3d.new(corners[1]),
