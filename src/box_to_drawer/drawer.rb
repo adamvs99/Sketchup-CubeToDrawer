@@ -181,7 +181,8 @@ module AdamExtensions
                 sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
                                                                data[:dado_thickness],
                                                                data[:dado_depth]]
-                group_data = {"su-obj<sheet_thickness>": sheet_thickness,
+                group_data = {"su-obj<drawer_type>":     self.drawer_type,
+                              "su-obj<sheet_thickness>": sheet_thickness,
                               "su-obj<dado_thickness>":  dado_thickness,
                               "su-obj<dado_depth>":      dado_depth,
                               "su-obj<origin>":          Geom::Point3d.new(@face_map.origin),
