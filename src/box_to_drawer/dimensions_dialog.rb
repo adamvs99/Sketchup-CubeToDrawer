@@ -39,14 +39,18 @@ module AdamExtensions
                 _clear_selected_drawer_data
                 selection.each do |e|
                     if Drawer::Drawer::is_drawer_group?(e)
+                        # build a list of data values where the list entries are unique
+                        # (hence the '\=' syntax)
                         tag = Drawer::Drawer::drawer_data_tag
                         @selected_drawer_data[:sheet_thickness] |= [e.get_attribute(tag, "su-obj<sheet_thickness>")]
                         @selected_drawer_data[:dado_thickness]  |= [e.get_attribute(tag, "su-obj<dado_thickness>")]
                         @selected_drawer_data[:dado_depth]      |= [e.get_attribute(tag, "su-obj<dado_depth>")]
+                        @selected_drawer_data[:drawer_type]     |= [e.get_attribute(tag, "su-obj<drawer_type>")]
                     elsif BoxShape::BoxMap.is_xyz_aligned_box?(e)
                         @selected_drawer_data[:sheet_thickness] |= [@selected_drawer_data[:sheet_thickness_default]]
                         @selected_drawer_data[:dado_thickness]  |= [@selected_drawer_data[:dado_thickness_default]]
                         @selected_drawer_data[:dado_depth]      |= [@selected_drawer_data[:dado_depth_default]]
+                        @selected_drawer_data[:drawer_type]     |= [@selected_drawer_data[:drawer_type_default]]
                     end
                 end
                 @selected_drawer_data[:sheet_thickness].empty? ? DimensionsDialog::close : _update_dialog_inputs
@@ -56,7 +60,8 @@ module AdamExtensions
             def initialize
                 @selected_drawer_data = {:sheet_thickness=>[], :sheet_thickness_default=>0.0,
                                          :dado_thickness=>[], :dado_thickness_default=>0.0,
-                                         :dado_depth=>[], :dado_depth_default=>0.0}
+                                         :dado_depth=>[], :dado_depth_default=>0.0,
+                                         :drawer_type=>[], :drawer_type_default=>"simple_drawer"}
                 @dialog = nil
                 SelectObserver::instance.add_observer(self, :update_selected_group_data)
                 _initialize_units
@@ -71,12 +76,11 @@ module AdamExtensions
                 default_units = json_data["default_dimension"][Units::units_type]
 
                 conversion_factor = default_units["json<conversion_factor>"]
-                ["sheet_thickness", "dado_thickness", "dado_depth"].each do |id|
-                    @selected_drawer_data[id.to_sym] = []
-                end
+                ["sheet_thickness", "dado_thickness", "dado_depth"].each {  |id|@selected_drawer_data[id.to_sym] = [] }
                 @selected_drawer_data[:sheet_thickness_default] = default_units["json<sheet_thickness>"] / conversion_factor
                 @selected_drawer_data[:dado_thickness_default]  = default_units["json<dado_thickness>"] / conversion_factor
                 @selected_drawer_data[:dado_depth_default]      = default_units["json<dado_depth>"] / conversion_factor
+                @selected_drawer_data[:drawer_type_default]     = json_data["all"]["json<default_drawer_type>"]
             end
 
             def _show
@@ -215,12 +219,19 @@ module AdamExtensions
                 sheet_thick_image = Utils::get_resource_file("sheetThickness.svg")
                 dado_thickness_image = Utils::get_resource_file("dadoWidth.svg")
                 dado_depth_image = Utils::get_resource_file("dadoDepth.svg")
+                simple_drawer_image = Utils::get_resource_file("simple_drawer.png")
+                pocket_screw_drawer_image = Utils::get_resource_file("pocket_screw_drawer.png")
+                dado_drawer_image = Utils::get_resource_file("dado_drawer.png")
                 @dialog.execute_script("document.getElementById('sheet_thickness_img').src = '#{sheet_thick_image}';")
                 @dialog.execute_script("document.getElementById('dado_thickness_img').src = '#{dado_thickness_image}';")
                 @dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
+                @dialog.execute_script("document.getElementById('simple_drawer_img').src = '#{simple_drawer_image}';")
+                @dialog.execute_script("document.getElementById('pocket_screw_drawer_img').src = '#{pocket_screw_drawer_image}';")
+                @dialog.execute_script("document.getElementById('dado_drawer_img').src = '#{dado_drawer_image}';")
 
-                @dialog.execute_script("document.getElementById('drawer_type_select').id = '#{Drawer::Drawer.drawer_type}';")
-                @dialog.execute_script("onDrawerSelectChange('#{Drawer::Drawer.drawer_type}');")
+                drawer_type = @selected_drawer_data[:drawer_type].length >= 1 ? @selected_drawer_data[:drawer_type].first : @selected_drawer_data[:default_drawer_type]
+                @dialog.execute_script("document.getElementById('drawer_type_select').id = '#{drawer_type}';")
+                @dialog.execute_script("onDrawerSelectChange('#{drawer_type}');")
             end
 
             def _clear_selected_drawer_data

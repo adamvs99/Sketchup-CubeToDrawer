@@ -79,6 +79,9 @@
         <img id="sheet_thickness_img" alt="sheetThickness">
         <img id="dado_thickness_img" alt="dadoWidth">
         <img id="dado_depth_img" alt="dadoDepth">
+        <img id="simple_drawer_img" alt="simple_drawer">
+        <img id="pocket_screw_drawer_img" alt="pocket_screw_drawer">
+        <img id="dado_drawer_img" alt="dado_drawer">
     </div>
     <script>
         function sendDataToSketchUp(how) {
@@ -86,16 +89,17 @@
             var dadoWidth = document.getElementById('dado_thickness').value;
             var dadoDepth = document.getElementById('dado_depth').value;
 
-            if (how == 'defaults') {
-                sketchup.updateDefaultsValues(sheetThickness, dadoWidth, dadoDepth);
+            switch (how) {
+                case 'defaults':
+                    sketchup.updateDefaultsValues(sheetThickness, dadoWidth, dadoDepth);
+                    break;
+                case 'data':
+                    sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth);
+                    break;
+                case 'quit':
+                    sketchup.closeDialog();
+                    break;
             }
-            else if (how == 'data'){
-                sketchup.updateDimensionsValues(sheetThickness, dadoWidth, dadoDepth);
-            }// 'updateDialogValues' is a Ruby callback
-            else if (how == 'quit') {
-                sketchup.closeDialog();
-            }
-
         }
 
         // handle focus in events for input fields
@@ -132,6 +136,13 @@
             sketchup.new_drawer_type(selected_option.id);
         });
 
+        function setImage(id_to_show) {
+            ["sheet_thickness_img", "dado_thickness_img","dado_depth_img",
+             "simple_drawer_img","pocket_screw_drawer_img","dado_drawer_img"].forEach(id => {
+                 document.getElementById(id).hidden = true;
+            });
+            document.getElementById(id_to_show).hidden = false;
+        }
         function onDrawerSelectChange(new_drawer_type) {
             switch (new_drawer_type) {
                 case "simple_drawer":
@@ -139,18 +150,21 @@
                     document.getElementById('dado_depth').hidden = true;
                     document.getElementById('dado_depth_label').hidden = true;
                     document.getElementById('dado_depth_units').hidden = true;
+                    document.getElementById("simple_drawer_img").style.display = "block";
                     break;
                 case "pocket_screw_drawer":
                     document.getElementById('dado_thickness_label').textContent = 'Dado Thickness:';
                     document.getElementById('dado_depth').hidden = false;
                     document.getElementById('dado_depth_label').hidden = false;
                     document.getElementById('dado_depth_units').hidden = false;
+                    document.getElementById("pocket_screw_drawer_img").style.display = "block";
                     break;
                 case "advanced_dado_drawer":
                     document.getElementById('dado_thickness_label').textContent = 'Dado Thickness:';
                     document.getElementById('dado_depth').hidden = false;
                     document.getElementById('dado_depth_label').hidden = false;
                     document.getElementById('dado_depth_units').hidden = false;
+                    document.getElementById("dado_drawer_img").style.display = "block";
                     break;
             }
         }
