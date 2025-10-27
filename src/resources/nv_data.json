@@ -1,4 +1,7 @@
 {
+  "all":{
+    "json<default_drawer_type>": "simple_drawer"
+  },
   "default_dimension": {
     "imperial": {
       "json<sheet_thickness>": 0.75,
