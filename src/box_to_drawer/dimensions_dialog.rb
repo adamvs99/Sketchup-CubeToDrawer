@@ -219,7 +219,8 @@ module AdamExtensions
                 @dialog.execute_script("document.getElementById('dado_thickness_img').src = '#{dado_thickness_image}';")
                 @dialog.execute_script("document.getElementById('dado_depth_img').src = '#{dado_depth_image}';")
 
-                @dialog.execute_script("document.getElementById('drawer_type_select').value = '#{Drawer::Drawer.drawer_type}';")
+                @dialog.execute_script("document.getElementById('drawer_type_select').id = '#{Drawer::Drawer.drawer_type}';")
+                @dialog.execute_script("onDrawerSelectChange('#{Drawer::Drawer.drawer_type}');")
             end
 
             def _clear_selected_drawer_data
