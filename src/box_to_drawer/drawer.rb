@@ -18,10 +18,9 @@ module AdamExtensions
 
             @@drawers = []
             @@limits = nil
-            @@drawer_type = "advanced_dado_drawer"
+            @@drawer_type = "simple_drawer"
 
             def self.new_type_selection(type)
-                return if type==@@drawer_type
                 @@drawer_type = type
             end
             def self.drawer_factory(box_group)
