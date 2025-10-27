@@ -47,26 +47,26 @@
     <div class="center">
         <h3>Thickness of drawer panels</h3>
         <p>
-            <label for="sheet_thickness">Sheet Thickness:</label>
+            <label for="sheet_thickness" id="sheet_thickness_label">Sheet Thickness:</label>
             <input class="center_editable" type="text" id="sheet_thickness" name="sheet_thickness" tabindex="1">
             <input class="unit_noneditable" type="text" id="sheet_units" name="sheet_units" readonly="readonly" tabindex="-1">
         </p>
         <p>
-            <label for="dado_thickness">Dado Thickness:</label>
+            <label for="dado_thickness" id="dado_thickness_label">Dado Thickness:</label>
             <input class="center_editable" type="text" id="dado_thickness" name="dado_thickness" tabindex="2">
             <input class="unit_noneditable" type="text" id="dado_thickness_units" name="dado_thickness_units" readonly="readonly" tabindex="-1">
         </p>
         <p>
-            <label for="dado_depth">Dado Depth:</label>
+            <label for="dado_depth" id="dado_depth_label">Dado Depth:</label>
             <input class="center_editable" type="text" id="dado_depth" name="dado_depth" tabindex="3">
             <input class="unit_noneditable" type="text" id="dado_depth_units" name="dado_depth_units" readonly="readonly" tabindex="-1">
         </p>
         <p>
             <label for="drawer_type_select">Drawer Type:</label>
             <select id="drawer_type_select" name="myDropdownName">
-                <option value="simple_drawer">Basic Drawer</option>
-                <option value="pocket_screw_drawer">Pocket Screw</option>
-                <option value="advanced_dado_drawer">Dado Drawer</option>
+                <option id="simple_drawer">Basic Drawer</option>
+                <option id="pocket_screw_drawer">Pocket Screw</option>
+                <option id="advanced_dado_drawer">Dado Drawer</option>
             </select>
         </p>
         <p>
@@ -125,11 +125,35 @@
             document.getElementById("dado_depth_img").style.display = "none";
             inputNumberFormat("dado_depth");
         });
-        
+
         document.getElementById("drawer_type_select").addEventListener("change", (event) => {
-            sketchup.new_drawer_type(event.target.value);
+            const selected_option = event.target.options[event.target.selectedIndex]
+            onDrawerSelectChange(selected_option.id);
+            sketchup.new_drawer_type(selected_option.id);
         });
 
+        function onDrawerSelectChange(new_drawer_type) {
+            switch (new_drawer_type) {
+                case "simple_drawer":
+                    document.getElementById('dado_thickness_label').textContent = 'Bottom Thickness:';
+                    document.getElementById('dado_depth').hidden = true;
+                    document.getElementById('dado_depth_label').hidden = true;
+                    document.getElementById('dado_depth_units').hidden = true;
+                    break;
+                case "pocket_screw_drawer":
+                    document.getElementById('dado_thickness_label').textContent = 'Dado Thickness:';
+                    document.getElementById('dado_depth').hidden = false;
+                    document.getElementById('dado_depth_label').hidden = false;
+                    document.getElementById('dado_depth_units').hidden = false;
+                    break;
+                case "advanced_dado_drawer":
+                    document.getElementById('dado_thickness_label').textContent = 'Dado Thickness:';
+                    document.getElementById('dado_depth').hidden = false;
+                    document.getElementById('dado_depth_label').hidden = false;
+                    document.getElementById('dado_depth_units').hidden = false;
+                    break;
+            }
+        }
         // Live validation: turn text red on invalid input and disable Update
         // Helpers for live validation
         function isValidNumberStr(str) {
