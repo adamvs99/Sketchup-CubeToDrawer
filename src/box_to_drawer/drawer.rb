@@ -23,6 +23,7 @@ module AdamExtensions
             def self.new_type_selection(type)
                 @@drawer_type = type
             end
+
             def self.drawer_factory(box_group)
                 return nil unless box_group.is_a?(Sketchup::Group)
                 case @@drawer_type
@@ -181,7 +182,7 @@ module AdamExtensions
                 sheet_thickness, dado_thickness, dado_depth = [data[:sheet_thickness],
                                                                data[:dado_thickness],
                                                                data[:dado_depth]]
-                group_data = {"su-obj<drawer_type>":     self.drawer_type,
+                group_data = {"su-obj<drawer_type>":     Drawer.drawer_type,
                               "su-obj<sheet_thickness>": sheet_thickness,
                               "su-obj<dado_thickness>":  dado_thickness,
                               "su-obj<dado_depth>":      dado_depth,
