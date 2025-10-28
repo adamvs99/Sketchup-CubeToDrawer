@@ -230,7 +230,7 @@ module AdamExtensions
                 @dialog.execute_script("document.getElementById('dado_drawer_img').src = '#{dado_drawer_image}';")
 
                 drawer_type = @selected_drawer_data[:drawer_type].length >= 1 ? @selected_drawer_data[:drawer_type].first : @selected_drawer_data[:default_drawer_type]
-                @dialog.execute_script("document.getElementById('drawer_type_select').id = '#{drawer_type}';")
+                @dialog.execute_script("document.getElementById('drawer_type_select').value = '#{drawer_type}';")
                 @dialog.execute_script("onDrawerSelectChange('#{drawer_type}');")
             end
 
