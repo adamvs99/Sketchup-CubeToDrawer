@@ -237,6 +237,19 @@ module AdamExtensions
                 self
             end # def expand
 
+            def symetrically_expand(amount)
+                return self if amount==0
+                case orientation
+                when "xy"
+                    expand(amount, amount, 0)
+                when "xz"
+                    expand(amount, 0, amount)
+                when "yz"
+                    expand(0, amount, amount)
+                end
+                self
+            end
+
             # @param edge: String
             # @param amount: Numeric
             # moves an edge by amount
