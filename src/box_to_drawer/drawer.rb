@@ -30,6 +30,9 @@ module AdamExtensions
                 when "simple_drawer"
                     require_relative 'simple_drawer'
                     return SimpleDrawer.new(box_group)
+                when "simple_plus_drawer"
+                    require_relative 'simple_plus_drawer'
+                    return SimplePlusDrawer.new(box_group)
                 when "pocket_screw_drawer"
                     require_relative 'pocket_screw_drawer'
                     return PocketScrewDrawer.new(box_group)
