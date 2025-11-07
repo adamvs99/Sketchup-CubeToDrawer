@@ -81,7 +81,7 @@ module AdamExtensions
                 model = Sketchup.active_model
                 base_rect = @face_map.to_rect_copy("front")
                 # calculate pocket hole Z positions
-                start_points = _generate_pocket_z_start_pts(base_rect.max_z, base_rect.height - sheet_thickness)
+                start_points = Utils.generate_fastener_z_start_pts(base_rect.max_z, base_rect.height - sheet_thickness)
 
                 front_rect = base_rect.copy()
                 model.start_operation("Create front Panel", true)
@@ -116,24 +116,6 @@ module AdamExtensions
             end # def create_side_front_back_panels
 
             private
-
-            def _generate_pocket_z_start_pts(z_mx, z_distance)
-                #TODO: improve this...
-                start_points = []
-                if z_distance <= 1.5
-                    start_points << z_mx - z_distance / 2.0
-                elsif z_distance <= 4.0
-                    z_div = z_distance / 3.0
-                    start_points << z_mx - z_div
-                    start_points << z_mx - z_div * 2.0
-                else
-                    z_div = z_distance / 4.0
-                    start_points << z_mx - z_div
-                    start_points << z_mx - z_div * 2.0
-                    start_points << z_mx - z_div * 3.0
-                end
-                start_points
-            end
 
             def _cut_pocket_holes(model, target_group, rect, box_face, z_start_pts, sheet_thickness)
                 model.start_operation("Cut Pocket Holes", true)

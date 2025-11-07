@@ -88,5 +88,25 @@ module AdamExtensions
             rotate_pt = rotate_center || group.bounds.center
             group.transform!(Geom::Transformation.rotation(rotate_pt, axis, angle.degrees))
         end
+
+
+        def self.generate_fastener_z_start_pts(z_mx, z_distance)
+            #TODO: improve this...
+            start_points = []
+            if z_distance <= 1.5
+                start_points << z_mx - z_distance / 2.0
+            elsif z_distance <= 4.0
+                z_div = z_distance / 3.0
+                start_points << z_mx - z_div
+                start_points << z_mx - z_div * 2.0
+            else
+                z_div = z_distance / 4.0
+                start_points << z_mx - z_div
+                start_points << z_mx - z_div * 2.0
+                start_points << z_mx - z_div * 3.0
+            end
+            start_points
+        end
+
     end # Utils
 end # AdamExtensions
